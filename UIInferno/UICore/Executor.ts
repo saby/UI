@@ -4,5 +4,7 @@ export { createGenerator } from './_executor/TClosure';
 export {
     htmlNode,
     textNode,
+    portal,
+    portalTagName,
     controlNode
 } from './_executor/_Utils/Vdom';

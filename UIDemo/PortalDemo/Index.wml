@@ -1,0 +1,9 @@
+<div name="root" style="marging: 10px; font-size: 20px;">
+    <div>Opener live content</div>
+    <UIDemo.PortalDemo.LiveContent />
+    <div>before insert portal</div>
+    <ws:if data="{{ alive }}">
+        <div class="PortalWrapper">insert portal here: <UIDemo.PortalDemo.ToBePortal openerContainer="{{ _children.root }}" /></div>
+    </ws:if>
+    <div>after insert portal</div>
+</div>

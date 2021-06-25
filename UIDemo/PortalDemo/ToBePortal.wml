@@ -1,0 +1,5 @@
+<div style="border: 2px solid blue;">
+    <h1>Portal</h1>
+    <div>Portal live content:</div>
+    <UIDemo.PortalDemo.LiveContent />
+</div>

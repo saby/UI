@@ -12,6 +12,7 @@ import { Map, Set } from 'Types/shim';
 import {
    htmlNode,
    textNode,
+   portalTagName,
    TGeneratorNode
 } from 'UICore/Executor';
 import {
@@ -65,6 +66,10 @@ export function isTemplateVNodeType(vnode: any): boolean {
 // TODO: Release type flag on virtual nodes to distinguish virtual nodes.
 export function isInvisibleNodeType(vnode: any): any {
    return vnode && typeof vnode === 'object' && vnode.type && vnode.type === invisibleNodeTagName;
+}
+
+export function isPortal(vnode: any): boolean {
+   return vnode && vnode.type === portalTagName;
 }
 
 // TODO модификация этой функции приводит к большим проблемам. Нужно точнее разобрать
@@ -730,6 +735,7 @@ export function getDecoratedMarkup(controlNode: IControlNode): any {
    if (
       !isControlVNodeType(result) &&
       !isVNodeType(result) &&
+      !isPortal(result) &&
       !isTemplateVNodeType(result)
    ) {
       // если корневой элемент отсутствует при первой синхронизации создаем текстовую ноду с ошибкой

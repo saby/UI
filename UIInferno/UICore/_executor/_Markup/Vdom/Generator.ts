@@ -67,6 +67,13 @@ export class GeneratorVdom implements IGenerator {
          this.createTemplate, this.createController, this.resolver, this);
    }
 
+   createPortal(
+      children: VNode.children,
+      container: HTMLElement
+   ): VNode {
+      return Vdom.portal(children, container);
+   }
+
    createControlNew(
       type: string,
       method: Function,

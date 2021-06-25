@@ -31,6 +31,9 @@ try {
 } catch (e) {
    thelpers.templateError(filename, e, data);
 }
+if (out && data && data._options && data._options.openerContainer) {
+   out = [markupGenerator.createPortal(out, data._options.openerContainer)];
+}
 return out || markupGenerator.createText("");
 `;
 
