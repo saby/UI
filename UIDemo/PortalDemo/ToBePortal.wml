@@ -1,5 +1,9 @@
-<div style="border: 2px solid blue;">
-    <h1>Portal</h1>
-    <div>Portal live content:</div>
-    <UIDemo.PortalDemo.LiveContent />
+<div>
+    <UI.Base:WasabyPortal portalContainer="{{ _options.opener._container }}">
+        <div style="border: 2px solid blue;">
+            <h1>Портал</h1>
+            <div>Живой контент портала:</div>
+            <UIDemo.PortalDemo.LiveContent />
+        </div>
+    </UI.Base:WasabyPortal>
 </div>

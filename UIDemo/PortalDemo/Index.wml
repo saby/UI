@@ -1,9 +1,13 @@
-<div name="root" style="marging: 10px; font-size: 20px;">
-    <div>Opener live content</div>
+<div style="marging: 10px; font-size: 20px;">
+    <h1>Коревой контрол</h1>
+    <div>Живой контент Корневого контрола:</div>
     <UIDemo.PortalDemo.LiveContent />
-    <div>before insert portal</div>
+
+    <div>Див перед точкой вставки портала в шаблоне</div>
     <ws:if data="{{ alive }}">
-        <div class="PortalWrapper">insert portal here: <UIDemo.PortalDemo.ToBePortal openerContainer="{{ _children.root }}" /></div>
+        <div class="PortalWrapper">insert portal here: <UIDemo.PortalDemo.ToBePortal opener="{{ _children.opener }}" /></div>
     </ws:if>
-    <div>after insert portal</div>
+    <div>Див после точки вставки портала в шаблоне</div>
+
+    <UIDemo.PortalDemo.Opener name="opener" />
 </div>

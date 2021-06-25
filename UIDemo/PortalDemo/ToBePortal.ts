@@ -5,10 +5,9 @@ import {
 } from 'UI/Base';
 
 import * as template from 'wml!UIDemo/PortalDemo/ToBePortal';
-import 'UIDemo/ReactDemo/Compatible/Pure';
 
 interface IPortalOptions extends IControlOptions {
-    openerContainer: HTMLElement;
+    opener: Control;
 }
 
 export default class ToBePortal extends Control<IPortalOptions> {
