@@ -81,7 +81,10 @@ function isVersionableArray(obj: IVersionableArray): boolean {
 }
 
 function isTemplate(tmpl: ITemplate): boolean {
-   return !!(tmpl && typeof tmpl.func === 'function' && tmpl.hasOwnProperty('internal'));
+   return !!(
+       tmpl && typeof tmpl.hasOwnProperty === 'function' &&
+       typeof tmpl.func === 'function' && tmpl.hasOwnProperty('internal')
+   );
 }
 
 function isTemplateArray(templateArray: ITemplateArray): boolean {
@@ -200,13 +203,33 @@ function isTemplateObjectChanged(
    return !!ch;
 }
 
+const basicPrototype: object = Object.getPrototypeOf({});
+
+// Про пробрасывании скоупа мы создаём новый прототип через Object.create.
+// Нужно отслеживать изменение опций на всех уровнях.
+function getKeysWithPrototypes(obj: Object): string[] {
+   const keys: string[] = [];
+   let currentPrototype: object = obj;
+
+   while(currentPrototype && currentPrototype !== basicPrototype) {
+      const currentPrototypeKeys = Object.keys(currentPrototype);
+      currentPrototype = Object.getPrototypeOf(currentPrototype);
+
+      for (let i = 0; i < currentPrototypeKeys.length; i++) {
+         keys.push(currentPrototypeKeys[i]);
+      }
+   }
+
+   return keys;
+}
+
 function getKeys(first: object, second: object): string[] {
    const keys = new Set();
-   const firstKeys = Object.keys(first);
+   const firstKeys = getKeysWithPrototypes(first);
    for (let j = 0; j < firstKeys.length; ++j) {
       keys.add(firstKeys[j]);
    }
-   const secondKeys = Object.keys(second);
+   const secondKeys = getKeysWithPrototypes(second);
    for (let j = 0; j < secondKeys.length; ++j) {
       keys.add(secondKeys[j]);
    }
@@ -215,6 +238,16 @@ function getKeys(first: object, second: object): string[] {
       properties.push(key);
    });
    return properties;
+}
+
+/**
+ * Проверить, является ли некоторое значение контентной опцией.
+ * @param value
+ */
+export function isContentOption(value: unknown): boolean {
+   return isTemplate(value as ITemplate) ||
+       isTemplateObject(value as ITemplateObject) ||
+       isTemplateArray(value as ITemplateArray);
 }
 
 export function getChangedOptions(

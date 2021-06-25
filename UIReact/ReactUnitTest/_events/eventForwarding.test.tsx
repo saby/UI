@@ -8,8 +8,10 @@ import { assert } from 'chai';
 // @ts-ignore
 import { JSDOM } from 'jsdom';
 import OuterControl from './OuterControl';
+import CounterControl from './CounterControl';
 
-import { WasabyEvents } from 'UICore/Events';
+import { WasabyEvents} from 'UICore/Events';
+import { TouchHandlers } from 'UICommon/Events';
 
 const isBrowser = typeof window !== 'undefined';
 const describeIf = (condition) => condition ? describe : describe.skip;
@@ -29,7 +31,15 @@ describeIf(isBrowser)('Подписки на контролы', () => {
         });
     }
 
+    async function tickAsync(duration: number): Promise<void> {
+        return act(async () => {
+            // в новой версии sinon есть clock.tickAsync, который в теории делает то же самое
+            clock.tick(duration);
+            await Promise.resolve();
+        });
+    }
     let clock;
+    let eventSystem;
     beforeEach(() => {
         sandbox = createSandbox();
         /*
@@ -39,6 +49,7 @@ describeIf(isBrowser)('Подписки на контролы', () => {
         clock = sandbox.useFakeTimers();
         container = document.createElement('div');
         document.body.appendChild(container);
+        eventSystem = WasabyEvents.initInstance(container);
     });
     afterEach(() => {
         clock.restore();
@@ -46,11 +57,10 @@ describeIf(isBrowser)('Подписки на контролы', () => {
         unmountComponentAtNode(container);
         container.remove();
         container = null;
+        eventSystem = null;
     });
 
     it('подписка на нативное событие на контроле должна навешиваться на внутренний контейнер', () => {
-        WasabyEvents.initInstance(container);
-
         act(() => {
             render(<OuterControl/>, container);
         });
@@ -60,5 +70,51 @@ describeIf(isBrowser)('Подписки на контролы', () => {
         const handlers = element.eventProperties['on:click'];
         const clickHandler = handlers[0].handler.apply(OuterControl.prototype);
         assert.strictEqual(clickHandler, OuterControl.prototype._clickHandler);
+    });
+    it('Проверка работы обработчика события on:', () => {
+        let instance;
+        act(() => {
+            instance = render(<CounterControl/>, container);
+        });
+        tick(0);
+
+        const button = container.querySelector('button');
+        assert.equal(instance.clickCount, '0');
+
+        act(() => {
+            button.dispatchEvent(new window.MouseEvent('click', {bubbles: true}));
+        });
+        tick(0);
+
+        assert.equal(instance.clickCount,'1');
+    });
+
+    it('Проверяем события тача', async () => {
+        global.navigation = { maxTouchPoints: 1 };
+        const originalTouchState = TouchHandlers.shouldUseClickByTap;
+        TouchHandlers.shouldUseClickByTap = () => {
+            return true;
+        };
+
+        let instance;
+        act(() => {
+            instance = render(<CounterControl/>, container);
+        });
+        tick(0);
+
+        const button = container.querySelector('button');
+        assert.equal(instance.clickCount, '0');
+
+        act(() => {
+            button.dispatchEvent(new window.TouchEvent('touchstart', {bubbles: true}));
+            button.dispatchEvent(new window.TouchEvent('touchend', {bubbles: true}));
+        });
+        await tickAsync(500);
+        tick(0);
+
+        assert.equal(instance.clickCount,'1');
+
+        TouchHandlers.shouldUseClickByTap = originalTouchState;
+        delete global.navigation;
     });
 });

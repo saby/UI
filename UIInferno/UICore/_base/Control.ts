@@ -1221,7 +1221,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
     * Все стили будут скачаны при создании
     *
     * @static
-    * @deprecated
+    * @deprecated Подключать стили необходимо так import 'css!MyModule/library'
     * @example
     * <pre>
     *   static _styles: string[] = ['Controls/Utils/getWidth'];
@@ -1233,7 +1233,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
     * Все стили будут скачаны при создании
     *
     * @static
-    * @deprecated
+    * @deprecated https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/
     * @example
     * <pre>
     *   static _theme: string[] = ['Controls/popupConfirmation'];

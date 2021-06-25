@@ -457,12 +457,6 @@ export abstract class Ast {
     * FIXME: Refactor it
     * @deprecated
     */
-   __$ws_lexicalContext: IContext | null;
-
-   /**
-    * FIXME: Refactor it
-    * @deprecated
-    */
    __$ws_internalTree: any | null;
 
    /**

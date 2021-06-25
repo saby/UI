@@ -27,7 +27,8 @@ import {WasabyEvents, callNotify} from 'UICore/Events';
 import {IWasabyEventSystem} from 'UICommon/Events';
 import {TIState, TControlConfig, IControl} from 'UICommon/interfaces';
 import {IControlOptions, TemplateFunction} from 'UICommon/Base';
-import {prepareControlNodes} from '../ControlNodes';
+import { ChainOfRef, CreateOriginRef } from 'UICore/Ref';
+import { CreateControlNodeRef } from './Refs/CreateControlNodeRef';
 import {goUpByControlTree} from 'UICore/NodeCollector';
 import {constants} from 'Env/Env';
 import { ErrorViewer } from 'UICore/_base/ErrorViewer';
@@ -620,19 +621,11 @@ export default class Control<TOptions extends IControlOptions = {},
             while (realFiberNode instanceof Array) {
                 realFiberNode = realFiberNode[0];
             }
-            const originRef = realFiberNode.ref;
-
-            // tslint:disable-next-line:no-this-assignment
-            const control = this;
+            const chainOfRef = new ChainOfRef();
+            chainOfRef.add(new CreateControlNodeRef(this, Control)).add(new CreateOriginRef(realFiberNode.ref));
             result = {
                 ...realFiberNode, ref: (node) => {
-                    // TODO: в случае если нет node, вызов рефа для детей и событий приводит к ошибке
-                    if(!node) {
-                        return;
-                    }
-                    // @ts-ignore FIXME https://online.sbis.ru/opendoc.html?guid=d725336c-8428-4693-b4e4-0d5dd51aafe7
-                    prepareControlNodes(node, control, Control);
-                    return originRef && originRef.apply(this, [node]);
+                    return chainOfRef.execute()(node);
                 }
             };
         } catch (e) {
@@ -660,7 +653,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * Все стили будут скачаны при создании
      *
      * @static
-     * @deprecated
+     * @deprecated Подключать стили необходимо так import 'css!MyModule/library'
      * @example
      * <pre>
      *   static _styles: string[] = ['Controls/Utils/getWidth'];
@@ -672,7 +665,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * Все стили будут скачаны при создании
      *
      * @static
-     * @deprecated
+     * @deprecated https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/
      * @example
      * <pre>
      *   static _theme: string[] = ['Controls/popupConfirmation'];

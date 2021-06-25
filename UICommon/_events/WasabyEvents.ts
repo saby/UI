@@ -29,6 +29,7 @@ import {
  */
 
 const callAfterMount: IArrayEvent[] = [];
+const afterMountEvent: string[] = ['mouseenter', 'mousedown'];
 
 abstract class WasabyEvents implements IWasabyEventSystem {
     private capturedEventHandlers: Record<string, IHandlerInfo[]>;
@@ -41,8 +42,6 @@ abstract class WasabyEvents implements IWasabyEventSystem {
     protected _rootDOMNode: TModifyHTMLNode;
     private _handleTabKey: Function;
 
-    protected touchHandlers: TouchHandlers;
-
     //#region инициализация системы событий
     protected constructor(rootNode: TModifyHTMLNode, tabKeyHandler?: Function) {
         this._rootDOMNode = rootNode;
@@ -50,7 +49,6 @@ abstract class WasabyEvents implements IWasabyEventSystem {
         this._handleTabKey = tabKeyHandler;
 
         this.initEventSystemFixes();
-        this.touchHandlers = new TouchHandlers(this._handleClick, this.captureEventHandler);
 
         // если я это не напишу, ts ругнется 'touchendTarget' is declared but its value is never read
         this.touchendTarget = this.touchendTarget || null;
@@ -190,7 +188,7 @@ abstract class WasabyEvents implements IWasabyEventSystem {
                             try {
                                 // TODO: убрать проверку на тип события - сделать более универсальный метод возможно надо смотреть
                                 //  на eventObject.nativeEvent или вообще для всех?
-                                if (!fn.control._mounted && eventObject.type === 'mouseenter') {
+                                if (!fn.control._mounted && afterMountEvent.indexOf(eventObject.type) > -1) {
                                     /* Асинхронный _afterMount контролов приводит к тому,
                                      * что события с dom начинают стрелять до маунта,
                                      * в таком случае их надо вызвать отложено */
@@ -280,7 +278,7 @@ abstract class WasabyEvents implements IWasabyEventSystem {
 
     //#region специфические обработчики
     protected _handleClick(event: MouseEvent): void {
-        this.touchHandlers.shouldUseClickByTapOnClick(event);
+        TouchHandlers.shouldUseClickByTapOnClick(event);
 
         /**
          * Firefox right click bug
@@ -298,7 +296,9 @@ abstract class WasabyEvents implements IWasabyEventSystem {
 
         // Break click on non-empty selection with type "Range".
         // Have to trim because of fake '\n' selection in some cases.
-        const hasSelection = selection && selection.type === 'Range' && (event.target as HTMLElement).contains(selection.focusNode);
+        const hasSelection = selection &&
+            selection.type === 'Range' &&
+            (event.target as HTMLElement).contains(selection.focusNode);
         const userSelectIsNone = window && window.getComputedStyle
             ? window.getComputedStyle(event.target as HTMLElement)['user-select'] === 'none'
             : true;
@@ -336,7 +336,7 @@ abstract class WasabyEvents implements IWasabyEventSystem {
 
     // TODO: docs
     protected _handleTouchmove(event: ITouchEvent): void {
-        this.touchHandlers.shouldUseClickByTapOnTouchmove(event);
+        TouchHandlers.shouldUseClickByTapOnTouchmove(event);
         FastTouchEndController.setClickEmulateState(false);
         SwipeController.detectState(event);
         LongTapController.resetState();
@@ -344,7 +344,7 @@ abstract class WasabyEvents implements IWasabyEventSystem {
 
     // TODO: docs
     protected _handleTouchend(event: ITouchEvent): void {
-        this.touchHandlers.shouldUseClickByTapOnTouchend(event);
+        TouchHandlers.shouldUseClickByTapOnTouchend.call(this, event);
 
         // Compatibility. Touch events handling in Control.compatible looks for
         // the `addedToClickState` flag to see if the event has already been

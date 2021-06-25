@@ -2,21 +2,21 @@
 define([
    'Compiler/html/Parser',
    'Compiler/core/Tags',
-   'Compiler/utils/ErrorHandler',
    'Compiler/core/Traverse',
    'Compiler/core/PatchVisitor',
    'Compiler/core/Scope',
    'Compiler/i18n/Translator',
-   'Compiler/expressions/Parser'
+   'Compiler/expressions/Parser',
+   'UITest/_compiler/NullLogger'
 ], function(
    Parser,
    Tags,
-   ErrorHandler,
    Traverse,
    PatchVisitor,
    Scope,
    Translator,
-   ExpressionsParser
+   ExpressionsParser,
+   NullLogger
 ) {
    'use strict';
 
@@ -86,7 +86,7 @@ define([
    }
 
    function process(html) {
-      let errorHandler = ErrorHandler.createErrorHandler(true);
+      let errorHandler = NullLogger.default();
       let scope = new Scope.default();
       let parsed = Parser.parse(html, FILE_NAME, {
          xml: true,
