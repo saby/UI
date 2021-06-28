@@ -24,7 +24,8 @@ import {
    TIncludedTemplate,
    TObject,
    IControlUserData,
-   IControlConfig
+   IControlConfig,
+   getter
 } from 'UICommon/Executor';
 
 const defRegExp = /(\[def-[\w\d]+\])/g;
@@ -596,31 +597,24 @@ export class Generator {
       Object.keys(events).forEach((eventName) => {
          const eventArr = events[eventName];
          eventArr.forEach((event) => {
-            if (event.args) {
-               event.fn = function (eventObj) {
-                  const context = event.context.apply(this.viewController);
-                  const handler = event.handler.apply(this.viewController);
-                  if (typeof handler === 'undefined') {
-                     throw new Error(`Отсутствует обработчик ${ event.value } события ${ eventObj.type } у контрола ${ event.viewController._moduleName }`);
-                  }
-                  const res = handler.apply(context, arguments);
-                  if(res !== undefined) {
-                     eventObj.result = res;
-                  }
-               };
-            } else {
-               event.fn = function (eventObj, value) {
-                  if (!event.handler(this.viewController, value)) {
-                     event.handler(this.data, value)
-                  }
-               };
-            }
-
+            event.fn = function (eventObj) {
+               const preparedContext = event.context || events.meta.context;
+               const preparedHandler = event.handler || events.meta.handler;
+               const context = preparedContext.apply(this.viewController);
+               const handler = preparedHandler.apply(this.viewController, [event.value]);
+               if (typeof handler === 'undefined') {
+                  throw new Error(`Отсутствует обработчик ${ event.value } события ${ eventObj.type } у контрола ${ event.viewController._moduleName }`);
+               }
+               const res = handler.apply(context, arguments);
+               if(res !== undefined) {
+                  eventObj.result = res;
+               }
+            };
             event.fn = event.fn.bind({
-               viewController: event.viewController,
+               viewController: events.meta.viewController,
                data: event.data
             });
-            event.fn.control = event.viewController;
+            event.fn.control = events.meta.viewController;
          });
       });
    }
@@ -652,7 +646,13 @@ export class Generator {
          // @ts-ignore
          const prepareEvents = this.prepareEvents || this.generatorBase.prepareEvents;
          if (attrs.events) {
-            prepareEvents(attrs.events);
+            const eventsMeta = {...attrs.events.meta};
+            delete attrs.events.meta;
+            Object.defineProperty(attrs.events, 'meta', {
+               configurable: true,
+               value: eventsMeta
+            });
+            prepareEvents(attrs.events, eventsMeta);
          }
       }
 

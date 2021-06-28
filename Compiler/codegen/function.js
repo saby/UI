@@ -481,14 +481,21 @@ define('Compiler/codegen/function', [
             events: { },
             key: FSC.wrapAroundExec('key+"' + tag.key + '"')
          };
+         var eventMeta = {};
+         var needEventMeta = true;
          if (attribs) {
             for (attrib in attribs) {
                if (attribs.hasOwnProperty(attrib) && attribs[attrib]) {
                   if (eventExpressions.isEvent(attrib)) {
                      try {
-                        obj.events[attrib.toLowerCase()] = eventExpressions.processEventAttribute(
-                           attribs[attrib], attrib, data, false, this.fileName, this.childrenStorage
+                        var eventObject = eventExpressions.processEventAttribute(
+                           attribs[attrib], attrib, data, false, this.fileName, this.childrenStorage, needEventMeta
                         );
+                        obj.events[attrib.toLowerCase()] = eventObject.chain;
+                        if (needEventMeta) {
+                           eventMeta = eventObject.eventMeta;
+                           needEventMeta = false;
+                        }
                      } catch (error) {
                         throw new Error('На теге "' + tag.name + '" значение атрибута "' + attrib + '" некорректно "' + attribs[attrib].data[0].name.string + '": ' + error.message);
                      }
@@ -524,7 +531,10 @@ define('Compiler/codegen/function', [
                }
             }
          }
-         obj.events = FSC.wrapAroundExec('typeof window === "undefined"?{}:' + FSC.getStr(obj.events));
+         if (Object.keys(obj.events).length) {
+            obj.events.meta = eventMeta;
+            obj.events = FSC.wrapAroundExec('typeof window === "undefined"?{}:' + FSC.getStr(obj.events));
+         }
          return obj;
       },
 

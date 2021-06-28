@@ -287,5 +287,17 @@ export function mergeEvents(events1, events2, preventMergeEvents = false) {
          finalAttr[name] = (finalAttr[name] && !preventMergeEvents) ? events2[name].concat(finalAttr[name]) : events2[name];
       }
    }
+   if (events1 && events1.hasOwnProperty('meta')) {
+      Object.defineProperty(finalAttr, 'meta', {
+         configurable: true,
+         value: events1.meta
+      });
+   }
+   if (events2 && events2.hasOwnProperty('meta')) {
+      Object.defineProperty(finalAttr, 'meta', {
+         configurable: true,
+         value: events2.meta
+      });
+   }
    return finalAttr;
 }

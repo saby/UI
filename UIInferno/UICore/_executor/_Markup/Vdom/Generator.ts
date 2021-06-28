@@ -415,6 +415,12 @@ export class GeneratorVdom implements IGenerator {
       }
 
       if (attrs.events) {
+         const eventsMeta = {...attrs.events.meta};
+         delete attrs.events.meta;
+         Object.defineProperty(attrs.events, 'meta', {
+            configurable: true,
+            value: eventsMeta
+         });
          this.generatorBase.prepareEvents(attrs.events);
       }
 
