@@ -181,7 +181,7 @@ export function genCreateControlNew(
    events: string,
    options: string,
    config: string
-) {
+): string {
    // createControlNew(type, method, attributes, events, options, config)
    return `${VAR_MODULE_NAME}.createControlNew(`
       + `"${type}",`
@@ -190,5 +190,5 @@ export function genCreateControlNew(
       + `/*events*/ ${events},`
       + `/*options*/ ${options},`
       + `/*config*/ ${config}`
-      + `)`;
+      + ')';
 }

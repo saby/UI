@@ -49,8 +49,12 @@ define('Compiler/codegen/templates', [
    var bodyTemplate = preprocessRawTemplate(jstpl.BODY);
    var stringTemplate = preprocessRawTemplate(jstpl.STRING_TEMPLATE);
    var functionTemplate = preprocessRawTemplate(jstpl.FUNCTION_TEMPLATE);
+
    var objectTemplate = preprocessRawTemplate(jstpl.OBJECT_TEMPLATE);
    var includedTemplate = preprocessRawTemplate(jstpl.INCLUDED_TEMPLATE);
+   var objectTemplateReact = preprocessRawTemplate(jstpl.OBJECT_TEMPLATE_REACT);
+   var includedTemplateReact = preprocessRawTemplate(jstpl.INCLUDED_TEMPLATE_REACT);
+
    var privateTemplate = preprocessRawTemplate(jstpl.PRIVATE_TEMPLATE);
    var privateTemplateHeader = preprocessRawTemplate(jstpl.PRIVATE_TEMPLATE_HEADER);
    var partialTemplate = preprocessRawTemplate(jstpl.PARTIAL_TEMPLATE);
@@ -279,10 +283,18 @@ define('Compiler/codegen/templates', [
     * @param internal Набор internal выражений.
     * @param postfix Строка, которую необходимо добавить в конце сгенерированного блока.
     * @param isWasabyTemplate Флаг wml шаблона.
+    * @param useReact Флаг генерации кода для React.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generateObjectTemplate(template, internal, postfix, isWasabyTemplate) {
+   function generateObjectTemplate(template, internal, postfix, isWasabyTemplate, useReact) {
       var postfixCall = postfix || '';
+      if (useReact) {
+         // TODO: Implement
+         return objectTemplateReact
+            .replace('/*#TEMPLATE#*/', generateReturnValueFunction(template))
+            .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, isWasabyTemplate)
+            .replace('/*#INTERNAL#*/', generateReturnValueFunction(internal)) + postfixCall;
+      }
       return objectTemplate
          .replace('/*#TEMPLATE#*/', generateReturnValueFunction(template))
          .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, isWasabyTemplate)
@@ -297,10 +309,19 @@ define('Compiler/codegen/templates', [
     * @param internal Набор internal выражений.
     * @param postfix Строка, которую необходимо добавить в конце сгенерированного блока.
     * @param isWasabyTemplate Флаг wml шаблона.
+    * @param useReact Флаг генерации кода для React.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generateIncludedTemplate(template, internal, postfix, isWasabyTemplate) {
+   function generateIncludedTemplate(template, internal, postfix, isWasabyTemplate, useReact) {
       var postfixCall = postfix || '';
+      if (useReact) {
+         // TODO: Implement
+         return includedTemplateReact
+            .replace('/*#TEMPLATE#*/', generateReturnValueFunction(template))
+            .replace('/*#TEMPLATE_JSON#*/', generateReturnValueFunction(template))
+            .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, isWasabyTemplate)
+            .replace('/*#INTERNAL#*/', generateReturnValueFunction(internal)) + postfixCall;
+      }
       return includedTemplate
          .replace('/*#TEMPLATE#*/', generateReturnValueFunction(template))
          .replace('/*#TEMPLATE_JSON#*/', generateReturnValueFunction(template))

@@ -41,6 +41,7 @@ define('Compiler/modules/data/array', [
       return dirtyCh;
    }
 
+   // Генерация контентной опции (массив)
    function generateFunction(htmlPropertyName, html, string, injected) {
       var generatedString, cleanPropertyName = clearPropertyName(htmlPropertyName);
       var wsTemplateName = injected && injected.attribs && injected.attribs._wstemplatename;
@@ -48,6 +49,9 @@ define('Compiler/modules/data/array', [
       var fileName = this.handlers.fileName;
       var funcText = templates.generateTemplate(cleanPropertyName, generatedTemplate, fileName, !!string);
       var functionToWrap;
+
+      // Важно: параметр string устанавливается в true, когда на контентной опции задан тип type="string".
+      //  В таком случае создается контентная опция и сразу вызывается. Результат - строка (верстка).
       var postfixCall = string ? '(Object.create(data), null, context)' : '';
       var dirtyCh = generateInternal(string, injected, this.includedFn, this.internalFunctions, fileName);
 
@@ -65,12 +69,14 @@ define('Compiler/modules/data/array', [
             .replace(/\n/g, ' ');
       }
       if (this.includedFn) {
+         // Режим wml
          generatedString = templates.generateIncludedTemplate(
-            functionToWrap, dirtyCh ? ('isVdom?' + dirtyCh + ':{}') : '{}', postfixCall, this.isWasabyTemplate
+            functionToWrap, dirtyCh ? ('isVdom?' + dirtyCh + ':{}') : '{}', postfixCall, this.isWasabyTemplate, this.useReact
          );
       } else {
+         // Режим tmpl
          generatedString = templates.generateObjectTemplate(
-            functionToWrap, dirtyCh, postfixCall, this.isWasabyTemplat
+            functionToWrap, dirtyCh, postfixCall, this.isWasabyTemplate, this.useReact
          );
       }
 
