@@ -7,8 +7,11 @@ import * as template from 'wml!UIDemo/PortalDemo/Index';
 
 export default class PortalDemoIndex extends Control {
     _template: TemplateFunction = template;
-    alive: boolean = false;
+    showPortal: boolean = false;
     _afterMount(): void {
-        this.alive = true;
+        this.toggle();
+    }
+    toggle(): void {
+        this.showPortal = !this.showPortal;
     }
 }
