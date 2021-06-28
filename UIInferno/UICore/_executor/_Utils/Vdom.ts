@@ -7,6 +7,7 @@
  */
 import {
    InfernoText, VNode, ChildFlags, TKey,
+   createPortal,
    getFlagsForElementVnode, createVNode, createTextVNode
 } from 'Inferno/third-party/index';
 
@@ -37,7 +38,12 @@ export function htmlNode(
    key: VNode['key'],
    ref?: VNode['ref']
 ): VNode {
-   const flags = tagName === portalTagName ? tagName : getFlagsForElementVnode(tagName);
+   if (tagName === portalTagName) {
+      const portralVnode = createPortal(children, ref);
+      portralVnode.hprops = hprops;
+      return portralVnode;
+   }
+   const flags = getFlagsForElementVnode(tagName);
    const className = (hprops && hprops.attributes && hprops.attributes['class']) || '';
    const childFlags = getChildFlags(children, key);
    const vnode = createVNode(
