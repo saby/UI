@@ -669,7 +669,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * Все стили будут скачаны при создании
      *
      * @static
-     * @deprecated https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/
+     * @deprecated {@link /doc/platform/developmentapl/interface-development/themes/ используйте новый способ темизации}
      * @example
      * <pre>
      *   static _theme: string[] = ['Controls/popupConfirmation'];
