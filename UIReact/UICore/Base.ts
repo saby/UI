@@ -1,15 +1,16 @@
 export { default as Control, IControlChildren, IControlConstructor }  from './_base/Control';
 
+import { logger } from 'Application/Env';
 import { IGeneratorConfig } from 'UICommon/Executor';
 
 // TODO: реализовать или не использовать.
-export function getGeneratorConfig(): IGeneratorConfig {
-    throw new Error('В сборке на Реатке нет метода getGeneratorConfig');
+export function getGeneratorConfig(): IGeneratorConfig | void {
+    logger.error('В сборке на Реатке нет метода getGeneratorConfig');
 }
 
 // TODO: Реализовать или не использовать.
 export function startApplication(cfg?: Record<string, unknown>): void {
-    throw new Error('В сборке на Реатке нет метода startApplication');
+    logger.error('В сборке на Реакте нет метода startApplication');
 }
 
 /**

@@ -1,6 +1,6 @@
 /// <amd-module name="UI/_head/defaultTags" />
 
-import { Head as AppHead } from 'Application/Page';
+import { Head as AppHead, JSLinks } from 'Application/Page';
 import type { JML } from 'Application/Page';
 import { getResourceUrl } from "UI/Utils";
 import escapeHtml = require('Core/helpers/String/escapeHtml');
@@ -67,6 +67,7 @@ const prepareMetaScriptsAndLinks = (tag: string, attrs: object): object => {
  */
 export function createMetaScriptsAndLinks(cfg: IHeadOptions): void {
    const API = AppHead.getInstance();
+   const JsLinksAPI = JSLinks.getInstance();
    []
       .concat((cfg.meta || []).map((attr) => prepareMetaScriptsAndLinks('meta', attr)))
       .concat((cfg.scripts || []).map((attr) => prepareMetaScriptsAndLinks('script', attr)))
@@ -77,6 +78,14 @@ export function createMetaScriptsAndLinks(cfg: IHeadOptions): void {
                item.attrs[field] = getResourceUrl(item.attrs[field]);
             }
          });
+
+         // на старых страницах прилетают js-скрипты в поле jsLinks - их добавляем на страницу через API JSLinks
+         // @ts-ignore
+         if (item.tag === 'script' && item.attrs.src) {
+            JsLinksAPI.createTag(item.tag, item.attrs);
+            return;
+         }
+
          // @ts-ignore
          API.createTag(item.tag, item.attrs);
       });

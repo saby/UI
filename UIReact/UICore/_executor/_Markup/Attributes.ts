@@ -12,7 +12,7 @@ const formatStringToCamelCase = (name: string) => {
       splitted[0] +
       splitted
          .slice(1)
-         .map((word) => word[0].toUpperCase() + word.slice(1))
+         .map((word) => word ? word[0].toUpperCase() + word.slice(1) : '')
          .join('')
    );
 };

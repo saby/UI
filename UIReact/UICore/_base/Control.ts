@@ -842,6 +842,11 @@ export default class Control<TOptions extends IControlOptions = {},
         cfg: P,
         domElement: T
     ): Control {
+        if (domElement) {
+            // если пришел jquery, вытащим оттуда элемент. Это нужно для старых страниц
+            domElement = domElement[0] || domElement;
+        }
+
         // кладём в конфиг наследуемые опции, чтобы они попали в полноценные опции
         cfg.theme = cfg.theme ?? 'default';
         cfg.readOnly = cfg.readOnly ?? false;
