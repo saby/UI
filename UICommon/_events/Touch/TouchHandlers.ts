@@ -5,9 +5,9 @@ import { IClickEvent } from '../IEvents';
 let touchId: number = 0;
 
 export class TouchHandlers {
-    private clickStateTarget: Array<{ target: HTMLElement, touchId: number }> = [];
-    private preventShouldUseClickByTap: boolean = false;
-    private clickState = {
+    private static clickStateTarget: Array<{ target: HTMLElement, touchId: number }> = [];
+    private static preventShouldUseClickByTap: boolean = false;
+    private static clickState = {
         detected: false,
         stage: '',
         timer: undefined,
@@ -17,57 +17,53 @@ export class TouchHandlers {
         timeStart: undefined
     };
 
-    private readonly _handleClick: (MouseEvent) => void;
-    private readonly captureEventHandler: (MouseEvent) => void;
+    private static _handleClick: (MouseEvent) => void;
+    private static captureEventHandler: (MouseEvent) => void;
 
-    constructor(_handleClick: (MouseEvent) => void, captureEventHandler: (MouseEvent) => void) {
-        this._handleClick = _handleClick;
-        this.captureEventHandler = captureEventHandler;
-    }
     //#region обработка тача на специфичных устройствах
 
-    shouldUseClickByTapOnClick(event: MouseEvent): void {
-        if (this.shouldUseClickByTap()) {
-            const idx = this.getClickStateIndexForTarget(this.fixSvgElement(event.target));
+    static shouldUseClickByTapOnClick(event: MouseEvent): void {
+        if (TouchHandlers.shouldUseClickByTap()) {
+            const idx = TouchHandlers.getClickStateIndexForTarget(TouchHandlers.fixSvgElement(event.target));
             // if click event occurred, we can remove monitored target
             if (idx > -1) {
-                this.clickStateTarget.splice(idx, 1);
+                TouchHandlers.clickStateTarget.splice(idx, 1);
             }
         }
     }
 
-    shouldUseClickByTapOnTouchstart(event: ITouchEvent): void {
-        if (this.shouldUseClickByTap()) {
+    static shouldUseClickByTapOnTouchstart(event: ITouchEvent): void {
+        if (TouchHandlers.shouldUseClickByTap()) {
             // Для svg запоминаем ownerSVGElement, т.к. иногда в touchstart таргет - это тег svg,
             // при этом у события click, таргетом будет внутренний элемент
-            const target = this.fixSvgElement(event.target);
-            this.clickStateTarget.push({
+            const target = TouchHandlers.fixSvgElement(event.target);
+            TouchHandlers.clickStateTarget.push({
                 target,
                 touchId: touchId++ // записываем номер текущего касания
             });
         }
     }
 
-    shouldUseClickByTapOnTouchmove(event: ITouchEvent): void {
-        if (this.shouldUseClickByTap()) {
-            this.clickState.touchCount++;
+    static shouldUseClickByTapOnTouchmove(event: ITouchEvent): void {
+        if (TouchHandlers.shouldUseClickByTap()) {
+            TouchHandlers.clickState.touchCount++;
             // Only one touchmove event is allowed between touchstart and touchend events on Ipad.
             // If more than one touchmove did occurred, we don't emulate click event.
             // But on windows installed devices touchmove event can occur some times,
             // therefore we must check if touchmove count more than 1.
-            if (this.clickState.touchCount > 3) {
-                const idx = this.getClickStateIndexForTarget(this.fixSvgElement(event.target));
+            if (TouchHandlers.clickState.touchCount > 3) {
+                const idx = TouchHandlers.getClickStateIndexForTarget(TouchHandlers.fixSvgElement(event.target));
                 if (idx > -1) {
-                    this.clickStateTarget.splice(idx, 1);
+                    TouchHandlers.clickStateTarget.splice(idx, 1);
                 }
             }
         }
     }
 
-    shouldUseClickByTapOnTouchend(event: ITouchEvent): void {
-        if (this.shouldUseClickByTap() && !this.preventShouldUseClickByTap) {
+    static shouldUseClickByTapOnTouchend(event: ITouchEvent): void {
+        if (TouchHandlers.shouldUseClickByTap() && !TouchHandlers.preventShouldUseClickByTap) {
             const lastTouchId = touchId;
-            this.clickState.touchCount = 0;
+            TouchHandlers.clickState.touchCount = 0;
             // click occurrence checking
             setTimeout(() => {
                 // Вызываем клик, если клик был не вызван автоматически после touchEnd. Такое иногда
@@ -82,27 +78,27 @@ export class TouchHandlers {
                 //    touchId. Это предотвращает ситуации, когда мы быстро нажимаем на элемент много
                 //    раз, и этот setTimeout, добавленный на первое касание, находит в массиве clickStateTarget
                 //    тот же элемент, но добавленный на сотое касание.
-                const idx = this.getClickStateIndexForTarget(this.fixSvgElement(event.target));
-                if (idx > -1 && this.clickStateTarget[idx].touchId < lastTouchId) {
+                const idx = TouchHandlers.getClickStateIndexForTarget(this.fixSvgElement(event.target));
+                if (idx > -1 && TouchHandlers.clickStateTarget[idx].touchId < lastTouchId) {
                     // If the click did not occur, we emulate the click through the
                     // vdom environment only (so that the old WS3 environment ignores it).
                     // To do so, we generate the fake click event object based on the data
                     // from the touchend event and propagate it using the vdom bubbling.
-                    const clickEventObject = this.generateClickEventFromTouchend(event) as MouseEvent;
+                    const clickEventObject = TouchHandlers.generateClickEventFromTouchend.call(this, event) as MouseEvent;
                     this._handleClick(clickEventObject);
                     this.captureEventHandler(clickEventObject);
                 }
-            }, this.clickState.timeout);
+            }, TouchHandlers.clickState.timeout);
         }
     }
 
-    setPreventShouldUseClickByTap(value: boolean): void {
-        this.preventShouldUseClickByTap = value;
+    static setPreventShouldUseClickByTap(value: boolean): void {
+        TouchHandlers.preventShouldUseClickByTap = value;
     }
     /*
      * Обеспечивает правильную работу тач событий на телевизорах с тачем и windows планшетах
     */
-    private shouldUseClickByTap(): boolean {
+    private static shouldUseClickByTap(): boolean {
         // In chrome wrong target comes in event handlers of the click events on touch devices.
         // It occurs on the TV and the Windows tablet. Presto Offline uses limited version of WebKit
         // therefore the browser does not always generate clicks on the tap event.
@@ -115,7 +111,7 @@ export class TouchHandlers {
         );
     }
 
-    private generateClickEventFromTouchend(event: TouchEvent): IClickEvent {
+    private static generateClickEventFromTouchend(event: TouchEvent): IClickEvent {
         let touch: any = event.changedTouches && event.changedTouches[0];
         if (!touch) {
             touch = {
@@ -165,12 +161,12 @@ export class TouchHandlers {
 
     // Возвращает самое старое (т. к. они расположены по порядку) касание, для которого
     // сработал touchStart, но для которого не было touchMove или click
-    private getClickStateIndexForTarget(target: HTMLElement): number {
-        return this.clickStateTarget.findIndex((el: any): boolean => el.target === target);
+    private static getClickStateIndexForTarget(target: HTMLElement): number {
+        return TouchHandlers.clickStateTarget.findIndex((el: any): boolean => el.target === target);
     }
 
 
-    private fixSvgElement(element: EventTarget): HTMLElement {
+    private static fixSvgElement(element: EventTarget): HTMLElement {
         return (element as SVGElement).ownerSVGElement ?
             (element as SVGElement).ownerSVGElement as unknown as HTMLElement : element as HTMLElement;
     }
