@@ -78,7 +78,7 @@ export class TouchHandlers {
                 //    touchId. Это предотвращает ситуации, когда мы быстро нажимаем на элемент много
                 //    раз, и этот setTimeout, добавленный на первое касание, находит в массиве clickStateTarget
                 //    тот же элемент, но добавленный на сотое касание.
-                const idx = TouchHandlers.getClickStateIndexForTarget(this.fixSvgElement(event.target));
+                const idx = TouchHandlers.getClickStateIndexForTarget(TouchHandlers.fixSvgElement(event.target));
                 if (idx > -1 && TouchHandlers.clickStateTarget[idx].touchId < lastTouchId) {
                     // If the click did not occur, we emulate the click through the
                     // vdom environment only (so that the old WS3 environment ignores it).
