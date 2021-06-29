@@ -10,5 +10,6 @@ export default class LiveContent extends Control {
     counter: number = 0;
     clickHandler(): void {
         this.counter++;
+        this._notify('counterChanged', [this.counter]);
     }
 }

@@ -3,7 +3,8 @@
     <div>Живой контент Корневого контрола:</div>
     <UIDemo.PortalDemo.LiveContent />
 
-    <button on:click="toggle()">Открыть/закрыть портал</button>
+    <div><button on:click="togglePortal()">{{ showPortal ? 'Закрыть' : 'Открыть' }} портал</button></div>
+    <div><button on:click="toggleOpener()">{{ showOpener ? 'Закрыть' : 'Открыть' }} опенер</button></div>
 
     <div>Див перед точкой вставки портала в шаблоне</div>
     <ws:if data="{{ showPortal }}">
@@ -11,5 +12,7 @@
     </ws:if>
     <div>Див после точки вставки портала в шаблоне</div>
 
-    <UIDemo.PortalDemo.Opener name="opener" />
+    <ws:if data="{{ showOpener }}">
+        <UIDemo.PortalDemo.Opener name="opener" />
+    </ws:if>
 </div>
