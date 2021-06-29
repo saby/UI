@@ -1,8 +1,10 @@
 /// <amd-module name="UICommon/_deps/HeadData" />
-import { IDeps } from './DepsCollector';
+
+import { IDeps } from 'WasabyLoader/RecursiveWalker';
 import PageDeps from './PageDeps';
 import * as AppEnv from 'Application/Env';
 import { IStore } from 'Application/Interface';
+
 /**
  * Компонент-состояние head страницы
  * Собирает ресурсы страницы,

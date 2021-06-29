@@ -1,7 +1,7 @@
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import { Logger } from 'UICommon/Utils';
-import * as Library from 'WasabyLoader/Library';
+import { recursiveWalker, TYPES, RequireJSPlugin } from 'WasabyLoader/RecursiveWalker';
 import { controller } from 'I18n/i18n';
 
 export type IDeps = string[];
@@ -18,35 +18,12 @@ export interface ICollectedTemplates {
    tmpl: string[];
    wml: string[];
 }
-export interface ICollectedDeps {
-   js?: {[depName: string]: IModuleInfo};
-   i18n?: {[depName: string]: IModuleInfo};
-   css?: {[depName: string]: IModuleInfo};
-   wml?: {[depName: string]: IModuleInfo};
-   tmpl?: {[depName: string]: IModuleInfo};
-}
-
-interface IModuleInfo {
-   moduleName: string;
-   fullName: string;
-   typeInfo: IPlugin;
-}
-
-interface IPlugin {
-   type: string;
-   plugin: string;
-   hasDeps: boolean;
-   hasPacket: boolean;
-   packOwnDeps: boolean;
-   canBePackedInParent?: boolean;
-}
 
 interface ILocalizationResources {
    dictionary?: string;
    style?: string;
 }
 
-type RequireJSPlugin = 'js' | 'wml' | 'tmpl' | 'i18n' | 'default' | 'is' | 'browser';
 type IDepPack = Record<string, DEPTYPES>;
 interface IDepCSSPack {
    themedCss: IDepPack; simpleCss: IDepPack;
@@ -80,79 +57,6 @@ const WSCORE_MODULE_NAME = 'WS.Core';
  */
 const WSCORE_MODULES_PREFIXES = ['Core/', 'Lib/', 'Transport/'];
 
-export const TYPES: Record<RequireJSPlugin | 'css', object> = {
-   tmpl: {
-      type: 'tmpl',
-      plugin: 'tmpl',
-      hasDeps: true,
-      hasPacket: false,
-      canBePackedInParent: true
-   },
-   js: {
-      type: 'js',
-      plugin: '',
-      hasDeps: true,
-      hasPacket: true,
-      packOwnDeps: true
-   },
-   wml: {
-      type: 'wml',
-      plugin: 'wml',
-      hasDeps: true,
-      hasPacket: false,
-      canBePackedInParent: true
-   },
-   i18n: {
-      type: 'i18n',
-      plugin: 'i18n',
-      hasDeps: false,
-      hasPacket: false,
-      canBePackedInParent: false
-   },
-   is: {
-      type: 'is',
-      plugin: 'is',
-      hasDeps: false,
-      hasPacket: false,
-      canBePackedInParent: false
-   },
-   browser: {
-      type: 'browser',
-      plugin: 'browser',
-      hasDeps: true,
-      hasPacket: true,
-      packOwnDeps: true
-   },
-   css: {
-      type: 'css',
-      plugin: 'css',
-      hasDeps: false,
-      hasPacket: true
-   },
-   default: {
-      hasDeps: false
-   }
-};
-
-function getPlugin(name: string): string {
-   let res;
-   res = name.split('!')[0];
-   if (res === name) {
-      res = '';
-   }
-   return res;
-}
-
-export function getType(name: string): IPlugin | null {
-   const plugin = getPlugin(name);
-   for (const key in TYPES) {
-      if (TYPES[key].plugin === plugin) {
-         return TYPES[key];
-      }
-   }
-   return null;
-}
-
 function getPackageName(packageLink: string): string {
    return packageLink.replace(/^(\/resources\/|resources\/)+/, '').replace(/\.min\.(css|js)$/, '');
 }
@@ -174,25 +78,6 @@ function isThemedCss(key: string): boolean {
 
 function removeThemeParam(name: string): string {
    return name.replace('theme?', '');
-}
-
-export function parseModuleName(name: string): IModuleInfo | null {
-   const typeInfo = getType(name);
-   if (typeInfo === null) {
-      return null;
-   }
-   let nameWithoutPlugin;
-   if (typeInfo.plugin) {
-      nameWithoutPlugin = name.split(typeInfo.plugin + '!')[1];
-   } else {
-      nameWithoutPlugin = name;
-   }
-   const parts = Library.parse(nameWithoutPlugin);
-   return {
-      moduleName: parts.name,
-      fullName: name,
-      typeInfo
-   };
 }
 
 function getEmptyPackages(): IDepPackages {
@@ -337,53 +222,6 @@ function mergePacks(result: IDepPackages, addedPackages: Partial<IDepPackages>):
 }
 
 /**
- * Create object which contains all nodes of dependency tree.
- * { js: {}, css: {}, ..., wml: {} }
- * @param allDeps
- * @param curNodeDeps
- * @param modDeps
- */
-export function recursiveWalker(
-   allDeps: ICollectedDeps,
-   curNodeDeps: IDeps,
-   modDeps: Record<string, IDeps>,
-   modInfo: object,
-   skipDep: boolean = false
-): void {
-   if (curNodeDeps && curNodeDeps.length) {
-      for (let i = 0; i < curNodeDeps.length; i++) {
-         let node = curNodeDeps[i];
-         const splitted = node.split('!');
-         if (splitted[0] === 'optional' && splitted.length > 1) {
-            // OPTIONAL BRANCH
-            splitted.shift();
-            node = splitted.join('!');
-            if (!modInfo[node]) {
-               continue;
-            }
-         }
-         const module = parseModuleName(node);
-         if(module === null) {
-            // Модули данного типа, мы не умеем подключать.
-            continue;
-         }
-         const moduleType = module.typeInfo.type;
-         if (!allDeps[moduleType]) {
-            allDeps[moduleType] = {};
-         }
-         if (!allDeps[moduleType][node]) {
-            if (!(skipDep && !!module.typeInfo.canBePackedInParent)) {
-               allDeps[moduleType][module.fullName] = module;
-            }
-            if (module.typeInfo.hasDeps) {
-               const nodeDeps = modDeps[node] || modDeps[module.moduleName];
-               recursiveWalker(allDeps, nodeDeps, modDeps, modInfo, !!module.typeInfo.packOwnDeps);
-            }
-         }
-      }
-   }
-}
-/**
  * Модуль для коллекции зависимостей на СП
  */
 export class DepsCollector {
@@ -403,7 +241,7 @@ export class DepsCollector {
    }
 
    collectDependencies(depends: IDeps = [], unpack: IDeps = []): ICollectedFiles {
-      let deps: string[] = [];
+      const deps: string[] = [];
       depends
           /** Убираем пустые зависимости и зависимости, которые нужно прислать распакованными */
           .filter((d) => !!d && unpack.indexOf(d) === -1)
@@ -412,7 +250,7 @@ export class DepsCollector {
              if(deps.indexOf(d) === -1) {
                 deps.push(d);
              }
-          })
+          });
 
       const files: ICollectedFiles = {
          js: [],
