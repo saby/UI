@@ -202,11 +202,14 @@ function isTemplateObjectChanged(
 
 const basicPrototype: object = Object.getPrototypeOf({});
 
+// Удалить в 4100 вместе с использованием.
+const tempCheckPrototypeName = '_suggestListOptions';
+
 // Про пробрасывании скоупа мы создаём новый прототип через Object.create.
 // Нужно отслеживать изменение опций на всех уровнях.
 function getKeysWithPrototypes(obj: Object): string[] {
-   // В 3100 для безопасности включим только для конкретного случая. В 4100 этого if не должно быть.
-   if (!obj.hasOwnProperty('contextOptionsInnerComponent')) {
+   //  В 3100 для безопасности включим только для конкретных случаев. В 4100 этого if не должно быть.
+   if (!obj.hasOwnProperty('contextOptionsInnerComponent') && !obj[tempCheckPrototypeName]) {
       return Object.keys(obj);
    }
 
