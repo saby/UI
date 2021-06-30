@@ -597,24 +597,33 @@ export class Generator {
       Object.keys(events).forEach((eventName) => {
          const eventArr = events[eventName];
          eventArr.forEach((event) => {
-            event.fn = function (eventObj) {
-               const preparedContext = event.context || events.meta.context;
-               const preparedHandler = event.handler || events.meta.handler;
-               const context = preparedContext.apply(this.viewController);
-               const handler = preparedHandler.apply(this.viewController, [event.value]);
-               if (typeof handler === 'undefined') {
-                  throw new Error(`Отсутствует обработчик ${ event.value } события ${ eventObj.type } у контрола ${ event.viewController._moduleName }`);
-               }
-               const res = handler.apply(context, arguments);
-               if(res !== undefined) {
-                  eventObj.result = res;
-               }
-            };
+            if (event.bindValue) {
+               event.fn = function (eventObj, value) {
+                  if (!event.handler(this.viewController, value)) {
+                     event.handler(this.data, value);
+                  }
+               };
+            } else {
+               event.fn = function (eventObj) {
+                  const preparedContext = event.context || events.meta.context;
+                  const context = preparedContext.apply(this.viewController);
+                  const handler = event.handler ?
+                      event.handler.apply(this.viewController) :
+                      events.meta.handler.apply(this.viewController, [event.value]);
+                  if (typeof handler === 'undefined') {
+                     throw new Error(`Отсутствует обработчик ${ event.value } события ${ eventObj.type } у контрола ${ event.viewController._moduleName }`);
+                  }
+                  const res = handler.apply(context, arguments);
+                  if(res !== undefined) {
+                     eventObj.result = res;
+                  }
+               };
+            }
             event.fn = event.fn.bind({
-               viewController: events.meta.viewController,
+               viewController: event.viewController,
                data: event.data
             });
-            event.fn.control = events.meta.viewController;
+            event.fn.control = events.viewController;
          });
       });
    }
@@ -646,6 +655,12 @@ export class Generator {
          // @ts-ignore
          const prepareEvents = this.prepareEvents || this.generatorBase.prepareEvents;
          if (Object.keys(attrs.events).length) {
+            const eventsMeta = {...attrs.events.meta};
+            delete attrs.events.meta;
+            Object.defineProperty(attrs.events, 'meta', {
+               configurable: true,
+               value: eventsMeta
+            });
             prepareEvents(attrs.eventsftoPartial);
          }
       }

@@ -65,7 +65,6 @@ interface IEventProcess {
    eventMeta?: IEventMeta;
 }
 interface IEventMeta {
-   viewController: string;
    isControl: boolean;
    context: string;
 }
@@ -73,8 +72,11 @@ interface IEventMeta {
 interface IEventNodeCfg {
    args?: string;
    value: string;
-   context?: string;
+   viewController: string;
+   data?: string;
    handler?: string;
+   isControl?: boolean;
+   context?: string;
 }
 
 /**
@@ -105,6 +107,10 @@ export class EventNode {
    constructor(cfg: IEventNodeCfg) {
       this.args = cfg.args;
       this.value = cfg.value;
+      this.viewController = cfg.viewController;
+      this.data = cfg.data;
+      this.handler = cfg.handler;
+      this.isControl = cfg.isControl;
       this.context = cfg.context;
    }
 }
@@ -149,7 +155,10 @@ export function processEventAttribute(
    const eventArguments = FSC.wrapAroundExec(`[${artifact.args.join(',')}]`);
    const chain = EventChain.prepareEventChain();
    const defaultContext = 'this';
-   const eventNode: IEventNodeCfg = {value: artifact.handlerName};
+   const eventNode: IEventNodeCfg = {
+      value: artifact.handlerName,
+      viewController: FSC.wrapAroundExec('viewController')
+   };
    if (Object.keys(artifact.args).length) {
       eventNode.args = eventArguments;
    }
@@ -160,7 +169,6 @@ export function processEventAttribute(
    chain.push(new EventNode(eventNode));
    if (calculateMeta) {
       const eventMeta = {
-         viewController: FSC.wrapAroundExec('viewController'),
          isControl,
          context: FSC.wrapAroundExec('(function(){ return ' + defaultContext + '; })'),
          handler: FSC.wrapAroundExec('function(handlerName){ return thelpers.getter(this, [handlerName]); }')
