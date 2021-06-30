@@ -1,22 +1,10 @@
-<!doctype html>
-<UI._base.Document
-   application="{{application}}"
+<ws:partial
+   template="{{ application }}"
    scope="{{_options}}"
-   attr:application="{{application}}"
-   attr:component="{{application}}"
-   attr:rootapp="UI/Base:Document"
-   attr:key="_"
-   cssLinks="{{ cssLinks }}"
+   attr:key="bd_"
    wsRoot="{{ wsRoot }}"
-   lite="{{lite}}"
-   appRoot="{{ appRoot }}"
-   resourceRoot="{{ resourceRoot }}"
-   RUMEnabled="{{ RUMEnabled }}"
-   pageName="{{ pageName }}"
+   cssLinks="{{ cssLinks }}"
    jsLinks="{{ jsLinks }}"
    staticDomains="{{staticDomains}}"
    cssBundles="{{ cssBundles }}"
-   servicesPath="{{ servicesPath }}"
-   product="{{ product }}"
-   buildnumber="{{ buildnumber }}"
-   reactApp="{{ reactApp }}"/>
+   servicesPath="{{ servicesPath }}"/>
