@@ -10,7 +10,6 @@
 export { addPageDeps } from './_deps/PageDependencies';
 export { aggregateCSS, aggregateJS, aggregateDependencies, BASE_DEPS_NAMESPACE,
          TIMETESTER_SCRIPTS_NAMESPACE } from './_deps/DependenciesPlaceholder';
-export { default as PrefetchLinksStore, handlePrefetchModules } from './_deps/PrefetchLinks';
 export { isModuleExists } from './_deps/PageDeps';
 
 import HeadData, { headDataStore } from './_deps/HeadData';
