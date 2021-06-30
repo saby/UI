@@ -9,7 +9,7 @@ import template = require('wml!UI/_base/HTML/Head');
 import { constants } from 'Env/Env';
 import { Head as AppHead } from 'Application/Page';
 import { createWsConfig, createDefaultTags, createMetaScriptsAndLinks, applyHeadJson } from 'UI/Head';
-import { aggregateCSS, headDataStore, handlePrefetchModules } from 'UICommon/Deps';
+import { aggregateCSS, headDataStore } from 'UICommon/Deps';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
 import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
@@ -47,7 +47,6 @@ class Head extends Control<IHeadOptions> {
                         .then(() => { resolve(); })
                         .catch((error) => { onerror(error); resolve(); });
                 }).then(() => {
-                    handlePrefetchModules(js);
                     /**
                      * Опросим HEAD API на предмет накопленного результата. Он будет массивом JML.
                      * Обработаем и добавим его к headApiData

@@ -4,7 +4,6 @@ import { cookie } from "Env/Env";
 import { EMPTY_THEME, getThemeController, THEME_TYPE } from "UICommon/theme/controller";
 import { getResourceUrl } from 'UICommon/Utils';
 import { JSLinks as AppJSLinks } from 'Application/Page';
-import { handlePrefetchModules } from './PrefetchLinks';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 
 import { IHTMLOptions } from '../_base/interface/IHTML';
@@ -150,12 +149,10 @@ export function aggregateDependencies(cfg: IOptions, deps: ICollectedDeps): ICol
     * Порядок следующий:
     * aggregateCSS - стили для страницы. Лежат в <head>.
     *    Пусть лучше страница потупит от запоздалых JS, чем будет дергаться от запоздалых CSS
-    * handlePrefetchModules - добавляет в <head> ресурсы для предзагрузки. На основной поток не влияют.
     * addBaseScripts - базовые скрипты приложения. Их 5. Без них даже RequireJS не заведется
     * aggregateJS
     */
    aggregateCSS(cfg.theme, deps.css.simpleCss, deps.css.themedCss);
-   handlePrefetchModules(deps.js);
    addBaseScripts(cfg);
    addTimeTester(cfg);
    aggregateJS(deps);
