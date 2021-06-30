@@ -646,7 +646,7 @@ export class Generator {
          // @ts-ignore
          const prepareEvents = this.prepareEvents || this.generatorBase.prepareEvents;
          if (Object.keys(attrs.events).length) {
-            prepareEvents(attrs.events);
+            prepareEvents(attrs.eventsftoPartial);
          }
       }
 
