@@ -9,7 +9,7 @@ import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 
 import { IHTMLOptions } from '../_base/interface/IHTML';
 import { IRootTemplateOptions } from '../_base/interface/IRootTemplate';
-import { ICollectedDeps } from './HeadData';
+import { ICollectedDeps } from './Interface';
 interface IOptions extends IHTMLOptions, IRootTemplateOptions {};
 
 /**
