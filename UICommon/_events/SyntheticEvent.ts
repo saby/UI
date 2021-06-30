@@ -102,6 +102,14 @@ export default class SyntheticEvent<TNativeEvent extends Event = Event> implemen
     }
 
     /**
+     * Останавливает распространение синтетического события далее, нативное продолжит распространение
+     * @return void
+     */
+    stopSyntheticEvent(): void {
+        this.stopped = true;
+    }
+
+    /**
      * Возвращает состояние распространения события (true - событие далее не распространяем)
      * @returns {boolean}
      */
