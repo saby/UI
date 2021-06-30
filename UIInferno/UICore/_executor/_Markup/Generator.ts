@@ -373,7 +373,7 @@ export class Generator {
       // когда тип вычисляемый, запускаем функцию вычисления типа и там обрабатываем тип
       if (type === 'resolver') {
          let handl, i;
-         if (attrs.events) {
+         if (Object.keys(attrs.events).length) {
             for (i in attrs.events) {
                if (attrs.events.hasOwnProperty(i)) {
                   for (handl = 0; handl < attrs.events[i].length; handl++) {
@@ -491,7 +491,7 @@ export class Generator {
       let res;
       const type = 'resolver';
       let handl, i;
-      if (attrs.events) {
+      if (Object.keys(attrs.events).length) {
          for (i in attrs.events) {
             if (attrs.events.hasOwnProperty(i)) {
                for (handl = 0; handl < attrs.events[i].length; handl++) {
@@ -573,7 +573,7 @@ export class Generator {
       // когда тип вычисляемый, запускаем функцию вычисления типа и там обрабатываем тип
       if (type === 'resolver') {
          let handl, i;
-         if (attrs.events) {
+         if (Object.keys(attrs.events).length) {
             for (i in attrs.events) {
                if (attrs.events.hasOwnProperty(i)) {
                   for (handl = 0; handl < attrs.events[i].length; handl++) {
@@ -645,14 +645,8 @@ export class Generator {
       } else {
          // @ts-ignore
          const prepareEvents = this.prepareEvents || this.generatorBase.prepareEvents;
-         if (attrs.events) {
-            const eventsMeta = {...attrs.events.meta};
-            delete attrs.events.meta;
-            Object.defineProperty(attrs.events, 'meta', {
-               configurable: true,
-               value: eventsMeta
-            });
-            prepareEvents(attrs.events, eventsMeta);
+         if (Object.keys(attrs.events).length) {
+            prepareEvents(attrs.events);
          }
       }
 

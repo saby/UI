@@ -103,9 +103,7 @@ export class EventNode {
     * @param cfg {IEventNodeCfg}
     */
    constructor(cfg: IEventNodeCfg) {
-      if (cfg.args) {
-         this.args = cfg.args;
-      }
+      this.args = cfg.args;
       this.value = cfg.value;
       this.context = cfg.context;
    }
