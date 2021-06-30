@@ -623,7 +623,7 @@ export class Generator {
                viewController: event.viewController,
                data: event.data
             });
-            event.fn.control = events.viewController;
+            event.fn.control = event.viewController;
          });
       });
    }
@@ -661,7 +661,7 @@ export class Generator {
                configurable: true,
                value: eventsMeta
             });
-            prepareEvents(attrs.eventsftoPartial);
+            prepareEvents(attrs.events);
          }
       }
 
