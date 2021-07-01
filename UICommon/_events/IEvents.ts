@@ -82,7 +82,6 @@ export interface IWasabyEvent {
 
 export interface IWasabyEventSystem {
     captureEventHandler: (event: Event) => void;
-    callEventsToDOM: VoidFunction;
     handleSpecialEvent: (eventName: string, eventHandler: Function, environment: IDOMEnvironment) => void;
     addTabListener: VoidFunction;
     removeTabListener: VoidFunction;
