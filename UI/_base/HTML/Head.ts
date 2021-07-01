@@ -1,5 +1,6 @@
 /// <amd-module name="UI/_base/HTML/Head" />
 
+import { EMPTY_THEME, getThemeController, THEME_TYPE } from 'UICommon/theme/controller';
 import { Control } from 'UICore/Base';
 
 /* tslint:disable:deprecated-anywhere */
@@ -9,7 +10,7 @@ import template = require('wml!UI/_base/HTML/Head');
 import { constants } from 'Env/Env';
 import { Head as AppHead } from 'Application/Page';
 import { createWsConfig, createDefaultTags, createMetaScriptsAndLinks, applyHeadJson } from 'UI/Head';
-import { aggregateCSS, headDataStore } from 'UICommon/Deps';
+import { headDataStore } from 'UICommon/Deps';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
 import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
@@ -183,4 +184,17 @@ interface IHeadOptions extends IControlOptions {
     links?: Object[];
     scripts?: Object[];
     reactApp?: boolean;
+}
+
+/**
+ * *********************************************************************************************************************
+ * Далее обозначен блок функций, которые должны умереть вместе с этим файлом.
+ * Модуль DependenciesPlaceholder, в котором они были определены был реорганизован
+ */
+
+function aggregateCSS(theme: string, styles: string[] = [], themes: string[] = []): Promise<string> {
+    const tc = getThemeController();
+    const gettingStyles = styles.filter((name) => !!name).map((name) => tc.get(name, EMPTY_THEME));
+    const gettingThemes = themes.filter((name) => !!name).map((name) => tc.get(name, theme, THEME_TYPE.SINGLE));
+    return Promise.all(gettingStyles.concat(gettingThemes)).then();
 }

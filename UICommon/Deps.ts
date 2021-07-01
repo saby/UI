@@ -8,8 +8,6 @@
  */
 
 export { addPageDeps } from './_deps/PageDependencies';
-export { aggregateCSS, aggregateJS, aggregateDependencies, BASE_DEPS_NAMESPACE,
-         TIMETESTER_SCRIPTS_NAMESPACE } from './_deps/DependenciesPlaceholder';
 export { isModuleExists } from './_deps/PageDeps';
 
 import HeadData, { headDataStore } from './_deps/HeadData';
