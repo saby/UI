@@ -5,6 +5,8 @@ import { IDeps } from './DepsCollector';
 import PageDeps from './PageDeps';
 import * as AppEnv from 'Application/Env';
 import { IStore } from 'Application/Interface';
+import { IResources, ICollectedDeps, ISerializedData } from './Interface';
+
 /**
  * Компонент-состояние head страницы
  * Собирает ресурсы страницы,
@@ -184,36 +186,4 @@ function getSerializedData(): ISerializedData {
     return AppEnv.getStateReceiver().serialize();
 }
 
-interface ISerializedData {
-    additionalDeps: IDeps;
-    serialized: string;
-}
-
-interface IResources {
-    links: ILinksAttrsResources[];
-    scripts: IScriptsAttrsResources[];
-}
-
-export interface ICollectedDeps {
-    // готовые ссылки на js
-    scripts: IDeps;
-    // названия js модулей
-    js: IDeps;
-    css: {
-        simpleCss: IDeps;
-        themedCss: IDeps;
-    };
-    tmpl: IDeps;
-    wml: IDeps;
-    rsSerialized: string;
-    rtpackModuleNames: IDeps;
-    additionalDeps: IDeps;
-}
-
-interface ILinksAttrsResources  {
-    href: string;
-}
-interface IScriptsAttrsResources  {
-    src: string;
-}
 type KeyHeadData = keyof HeadData;

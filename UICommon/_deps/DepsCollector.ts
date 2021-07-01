@@ -3,62 +3,8 @@
 import { Logger } from 'UICommon/Utils';
 import * as Library from 'WasabyLoader/Library';
 import { controller } from 'I18n/i18n';
-
-export type IDeps = string[];
-export interface ICollectedFiles extends ICollectedCSS, ICollectedTemplates {
-   js: string[];
-}
-export interface ICollectedCSS {
-   css: {
-      themedCss: string[];
-      simpleCss: string[];
-   };
-}
-export interface ICollectedTemplates {
-   tmpl: string[];
-   wml: string[];
-}
-export interface ICollectedDeps {
-   js?: {[depName: string]: IModuleInfo};
-   i18n?: {[depName: string]: IModuleInfo};
-   css?: {[depName: string]: IModuleInfo};
-   wml?: {[depName: string]: IModuleInfo};
-   tmpl?: {[depName: string]: IModuleInfo};
-}
-
-interface IModuleInfo {
-   moduleName: string;
-   fullName: string;
-   typeInfo: IPlugin;
-}
-
-interface IPlugin {
-   type: string;
-   plugin: string;
-   hasDeps: boolean;
-   hasPacket: boolean;
-   packOwnDeps: boolean;
-   canBePackedInParent?: boolean;
-}
-
-interface ILocalizationResources {
-   dictionary?: string;
-   style?: string;
-}
-
-type RequireJSPlugin = 'js' | 'wml' | 'tmpl' | 'i18n' | 'default' | 'is' | 'browser';
-type IDepPack = Record<string, DEPTYPES>;
-interface IDepCSSPack {
-   themedCss: IDepPack; simpleCss: IDepPack;
-}
-interface IDepPackages extends Record<RequireJSPlugin, IDepPack> {
-   css: IDepCSSPack;
-}
-
-enum DEPTYPES {
-   BUNDLE = 1,
-   SINGLE = 2
-}
+import { IPlugin, IModuleInfo, IDepPackages, RequireJSPlugin, ICollectedDepsRaw, IDepCSSPack, IDeps, ICollectedFiles,
+   ILocalizationResources, DEPTYPES, TYPES } from './Interface';
 
 /**
  * Соответствие плагина i18n библиотеке I18n/i18n
@@ -68,8 +14,6 @@ enum DEPTYPES {
 const SPECIAL_DEPS = {
    i18n: 'I18n/i18n'
 };
-
-
 /**
  * Название модуля WS.Core, который будет указан в s3debug при частичном дебаге
  */
@@ -79,60 +23,6 @@ const WSCORE_MODULE_NAME = 'WS.Core';
  * При частичном дебаге WS.Core необходимо выбрасывать модули с префиксом из списка
  */
 const WSCORE_MODULES_PREFIXES = ['Core/', 'Lib/', 'Transport/'];
-
-export const TYPES: Record<RequireJSPlugin | 'css', object> = {
-   tmpl: {
-      type: 'tmpl',
-      plugin: 'tmpl',
-      hasDeps: true,
-      hasPacket: false,
-      canBePackedInParent: true
-   },
-   js: {
-      type: 'js',
-      plugin: '',
-      hasDeps: true,
-      hasPacket: true,
-      packOwnDeps: true
-   },
-   wml: {
-      type: 'wml',
-      plugin: 'wml',
-      hasDeps: true,
-      hasPacket: false,
-      canBePackedInParent: true
-   },
-   i18n: {
-      type: 'i18n',
-      plugin: 'i18n',
-      hasDeps: false,
-      hasPacket: false,
-      canBePackedInParent: false
-   },
-   is: {
-      type: 'is',
-      plugin: 'is',
-      hasDeps: false,
-      hasPacket: false,
-      canBePackedInParent: false
-   },
-   browser: {
-      type: 'browser',
-      plugin: 'browser',
-      hasDeps: true,
-      hasPacket: true,
-      packOwnDeps: true
-   },
-   css: {
-      type: 'css',
-      plugin: 'css',
-      hasDeps: false,
-      hasPacket: true
-   },
-   default: {
-      hasDeps: false
-   }
-};
 
 function getPlugin(name: string): string {
    let res;
@@ -206,7 +96,7 @@ function getEmptyPackages(): IDepPackages {
 }
 
 function getPacksNames(
-   allDeps: ICollectedDeps = {},
+   allDeps: ICollectedDepsRaw = {},
    isUnpackModule: (key: string) => boolean,
    bundlesRoute: Record<string, string> = {}
 ): IDepPackages {
@@ -245,7 +135,7 @@ function getPacksNames(
 }
 
 function getCssPackages(
-   allDeps: ICollectedDeps,
+   allDeps: ICollectedDepsRaw,
    isUnpackModule: (key: string) => boolean,
    bundlesRoute: Record<string, string>
 ): IDepCSSPack {
@@ -288,7 +178,7 @@ function getCssPackages(
    return packages;
 }
 
-function getAllPackagesNames(all: ICollectedDeps, unpack: IDeps, bRoute: Record<string, string>): IDepPackages {
+function getAllPackagesNames(all: ICollectedDepsRaw, unpack: IDeps, bRoute: Record<string, string>): IDepPackages {
    const packs = getEmptyPackages();
    const isUnpackModule = getIsUnpackModule(unpack);
    mergePacks(packs, getPacksNames(all.js, isUnpackModule, bRoute));
@@ -344,7 +234,7 @@ function mergePacks(result: IDepPackages, addedPackages: Partial<IDepPackages>):
  * @param modDeps
  */
 export function recursiveWalker(
-   allDeps: ICollectedDeps,
+   allDeps: ICollectedDepsRaw,
    curNodeDeps: IDeps,
    modDeps: Record<string, IDeps>,
    modInfo: object,
@@ -463,7 +353,7 @@ export class DepsCollector {
     * @param files {ICollectedFiles} - набор файлов для добавления в вёрстку
     * @param deps {ICollectedDeps} - набор зависимостей, которые участвовали в построение страницы.
     */
-   collectI18n(files: ICollectedFiles, deps: ICollectedDeps): void {
+   collectI18n(files: ICollectedFiles, deps: ICollectedDepsRaw): void {
       const loadedContexts = controller.loadingsHistory.contexts;
       const localeCode = controller.currentLocale;
       const langCode = controller.currentLang;
