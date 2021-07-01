@@ -185,7 +185,8 @@ export function setControlNodeHook(
         // Попробуем вешать контейнер опенера.
         // Если что-то пойдёт не так - можно будет дождаться рефа ребёнка и присвоить контейнер оттуда.
         const element: IWasabyHTMLElement = ref as unknown as IWasabyHTMLElement;
-        updateControlNodes(element, controlNode, addControlNode);
+        controlNode.control._container = element;
+        controlNode.element = element;
         return [tagName, props, children, key, ref];
     }
     const environment: IDOMEnvironment = controlNode.environment;
