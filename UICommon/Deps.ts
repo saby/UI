@@ -9,7 +9,7 @@
 
 export { aggregateCSS, aggregateJS, aggregateDependencies, BASE_DEPS_NAMESPACE,
          TIMETESTER_SCRIPTS_NAMESPACE } from './_deps/DependenciesPlaceholder';
-export { isModuleExists } from './_deps/PageDeps';
+export { isModuleExists } from './_deps/RecursiveWalker';
 
 import HeadData, { headDataStore, addPageDeps } from './_deps/HeadData';
 import { DepsCollector } from './_deps/DepsCollector';

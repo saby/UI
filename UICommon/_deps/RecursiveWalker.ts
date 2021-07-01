@@ -1,10 +1,12 @@
 /// <amd-module name="UICommon/_deps/RecursiveWalker" />
 
+import { constants, cookie } from 'Env/Env';
+import { DepsCollector } from 'UICommon/_deps/DepsCollector';
 import {
     DEPTYPES,
-    ICollectedDepsRaw, IDepCSSPack,
+    ICollectedDepsRaw, ICollectedFiles, IContents, IDepCSSPack,
     IDepPackages, IDeps,
-    IModuleInfo,
+    IModuleInfo, IModules, IModulesDescription,
     IPlugin,
     RequireJSPlugin,
     TYPES
@@ -13,12 +15,43 @@ import { Logger } from 'UICommon/Utils';
 import * as Library from 'WasabyLoader/Library';
 
 /**
+ * constants.resourceRoot указан путь до корневой директории сервиса,
+ * а нужен путь до продукта, который 'resources'
+ * но в инт.тестах корень не 'resources', а именно constants.resourceRoot
+ */
+let root = 'resources';
+let contents: Partial<IContents> = {};
+try {
+    // tslint:disable-next-line:ban-ts-ignore
+    // @ts-ignore
+    contents = require(`json!${root}/contents`) || {}; // tslint:disable-line:no-var-requires
+} catch {
+    try {
+        root = constants.resourceRoot;
+        // tslint:disable-next-line:ban-ts-ignore
+        // @ts-ignore
+        contents = require(`json!${root}contents`) || {}; // tslint:disable-line:no-var-requires
+    } catch {
+        contents = {};
+    }
+}
+const { links, nodes, bundles } = getModulesDeps(contents.modules);
+const depsCollector = new DepsCollector(links, nodes, bundles);
+
+/**
  * Соответствие плагина i18n библиотеке I18n/i18n
  * Плагин i18n requirejs по сути это то же самое, что и библиотека I18n/i18n
  * но DepsCollector не знает об этом ничего.
  */
 const SPECIAL_DEPS = {
     i18n: 'I18n/i18n'
+};
+const noDescription: IModulesDescription = {
+    bundles: {},
+    nodes: {},
+    links: {},
+    packedLibraries: {},
+    lessDependencies: {}
 };
 /**
  * Название модуля WS.Core, который будет указан в s3debug при частичном дебаге
@@ -184,7 +217,11 @@ function getCssPackages(
     return packages;
 }
 
-export function getAllPackagesNames(all: ICollectedDepsRaw, unpack: IDeps, bRoute: Record<string, string>): IDepPackages {
+export function getAllPackagesNames(
+    all: ICollectedDepsRaw,
+    unpack: IDeps,
+    bRoute: Record<string, string>
+): IDepPackages {
     const packs = getEmptyPackages();
     const isUnpackModule = getIsUnpackModule(unpack);
     mergePacks(packs, getPacksNames(all.js, isUnpackModule, bRoute));
@@ -278,4 +315,91 @@ export function recursiveWalker(
             }
         }
     }
+}
+
+export function getUnpackDepsFromCookie(): IDeps {
+    /**
+     * в s3debug может быть true или строка-перечисление имен непакуемых ресурсов
+     * https://online.sbis.ru/opendoc.html?guid=1d5ab888-6f9e-4ee0-b0bd-12e788e60ed9
+     */
+    return cookie.get('s3debug')?.split?.(',') || [];
+}
+
+export function getDebugDeps(initDeps: IDeps): ICollectedFiles {
+    return {
+        js: [],
+        css: { themedCss: [], simpleCss: [] },
+        tmpl: [],
+        wml: []
+    };
+}
+
+/**
+ * Импорт module-dependencies.json текущего сервиса и всех внешних
+ * для коллекции зависимостей на СП
+ * @param modules - словарь используемых модулей, для которых собираются зависимости
+ */
+export function getModulesDeps(modules: IModules = {}): IModulesDescription {
+    if (constants.isBrowserPlatform) { return noDescription; }
+
+    /** Список путей до внешних сервисов
+     * файлы module-dependencies и bundlesRoute для модулей сторонних сервисов необходимо брать из этих модулей,
+     * т.к. require'ом не получится достучаться до корня стороннего сервиса
+     */
+    const externalPaths = Object.keys(modules)
+        .filter((name) => !!modules[name].path)
+        .map((name) => name);
+
+    return [root, ...externalPaths]
+        .map(requireModuleDeps)
+        .reduce(collect);
+}
+
+function requireModuleDeps(path: string): IModulesDescription {
+    try {
+        // в демо стендах resourceRoot равен "/"
+        // из-за этого в релиз режиме путь к мета файлам формируется с двойным слешем и require не грузит такие файлы
+        path = path === '/' ? '' : path;
+        // tslint:disable-next-line:ban-ts-ignore
+        // @ts-ignore
+        const deps: IModulesDeps = require(`json!${path}/module-dependencies`);
+        // tslint:disable-next-line:ban-ts-ignore
+        // @ts-ignore
+        const bundles: IBundlesRoute = require(`json!${path}/bundlesRoute`); // tslint:disable-line:no-shadowed-variable
+        return { ...deps, bundles };
+    } catch {
+        /** Ошибка игнорируется т.к module-dependencies может отсутствовать */
+        return noDescription;
+    }
+}
+
+function collect(prev: IModulesDescription, next: IModulesDescription): IModulesDescription {
+    return {
+        links: { ...prev.links, ...next.links },
+        nodes: { ...prev.nodes, ...next.nodes },
+        bundles: { ...prev.bundles, ...next.bundles },
+        packedLibraries: { ...prev.packedLibraries, ...next.packedLibraries },
+        lessDependencies: { ...prev.lessDependencies, ...next.lessDependencies }
+    };
+}
+
+/**
+ * Проверяет по файлу module-dependencies наличие указанного модуля в текущем сервисе
+ * @param moduleName Название модуля, которое хотим проверить на наличие
+ */
+export function isModuleExists(moduleName: string): boolean {
+    // Если сервис собран в debug-режиме, то файл module-dependencies не будет сгенерирован.
+    // Тогда по умолчанию считаем что модуль существует.
+    if (contents.buildMode === 'debug') {
+        return true;
+    }
+    return !!nodes[moduleName];
+}
+
+export function isDebug(): boolean {
+    return cookie.get('s3debug') === 'true' || contents.buildMode === 'debug';
+}
+
+export function getDepsCollector(): DepsCollector {
+    return depsCollector;
 }
