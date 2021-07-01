@@ -17,7 +17,7 @@ function fixedWasabyPortalTemplate(...args: unknown[]): string | VNode[] {
         return out;
     }
     const portalVNode = createPortal(out, portalContainer);
-    portalVNode.props = wasabyPortalProps;
+    portalVNode.children = out;
     portalVNode.hprops = wasabyPortalProps;
     return [portalVNode];
 }

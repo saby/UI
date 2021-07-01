@@ -41,6 +41,7 @@ export function htmlNode(
    if (tagName === portalTagName) {
       const portralVnode = createPortal(children, ref);
       portralVnode.hprops = hprops;
+      portralVnode.children = children;
       return portralVnode;
    }
    const flags = getFlagsForElementVnode(tagName);
