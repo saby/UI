@@ -2,7 +2,7 @@ import { DepsCollector } from 'UICommon/Deps';
 import { controller } from 'I18n/i18n';
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import { getType, parseModuleName, recursiveWalker } from 'UICommon/_deps/DepsCollector';
+import { getType, parseModuleName, recursiveWalker } from 'UICommon/_deps/RecursiveWalker';
 import { TYPES, ICollectedDepsRaw } from 'UICommon/_deps/Interface';
 
 const modDeps = {
