@@ -28,9 +28,6 @@ import {
  * @author Тэн В.А.
  */
 
-const callAfterMount: IArrayEvent[] = [];
-const afterMountEvent: string[] = ['mouseenter', 'mousedown'];
-
 abstract class WasabyEvents implements IWasabyEventSystem {
     private capturedEventHandlers: Record<string, IHandlerInfo[]>;
     protected touchendTarget: Element;
@@ -92,23 +89,7 @@ abstract class WasabyEvents implements IWasabyEventSystem {
      */
     abstract captureEventHandler<TNativeEvent extends Event>(
         event: TNativeEvent
-    ): void
-
-    callEventsToDOM(): void {
-        while (callAfterMount && callAfterMount.length) {
-            const elem = callAfterMount.shift();
-            const fn = elem.fn;
-            /* в слое совместимости контрол внутри которого построился wasaby-контрол, может быть уничтожен
-               до того как начнется асинхронный вызов afterMount,
-               как результат в текущей точку контрол будет уже уничтожен слоем совместимости
-               нало проверять действительно ли он жив, перед тем как выстрелить событием
-               */
-            // @ts-ignore
-            if (!fn.control._destroyed) {
-                fn.apply(fn.control, elem.finalArgs);
-            }
-        }
-    }
+    ): void;
 
     showCapturedEventHandlers(): Record<string, IHandlerInfo[]> {
         return this.capturedEventHandlers;
@@ -126,154 +107,14 @@ abstract class WasabyEvents implements IWasabyEventSystem {
      * @param args - Аргументы, переданные в _notify
      * @param native {any} - TODO: describe function parameter
      */
-    protected vdomEventBubbling<T>(
+    protected abstract vdomEventBubbling<T>(
         eventObject: ISyntheticEvent,
         controlNode: T & (IControlNode | IControlNodeEvent),
         eventPropertiesStartArray: unknown[],
         args: unknown[],
         native: boolean
-    ): void {
-        let eventProperties;
-        let stopPropagation = false;
-        const eventPropertyName = 'on:' + eventObject.type.toLowerCase();
-        let curDomNode;
-        let fn;
-        let evArgs;
-        let templateArgs;
-        let finalArgs = [];
+    ): void;
 
-        // Если событием стрельнул window или document, то распространение начинаем с body
-        if (native) {
-            curDomNode =
-                eventObject.target === window || eventObject.target === document ? document.body : eventObject.target;
-        } else {
-            curDomNode = controlNode.element;
-        }
-        curDomNode = native ? curDomNode : controlNode.element;
-
-        // Цикл, в котором поднимаемся по DOM-нодам
-        while (!stopPropagation) {
-            eventProperties = curDomNode.eventProperties;
-            if (eventProperties && eventProperties[eventPropertyName]) {
-                // Вызываем обработчики для всех controlNode на этой DOM-ноде
-                const eventProperty = eventPropertiesStartArray || eventProperties[eventPropertyName];
-                for (let i = 0; i < eventProperty.length && !stopPropagation; i++) {
-                    fn = eventProperty[i].fn;
-                    evArgs = eventProperty[i].args || [];
-                    // If controlNode has event properties on it, we have to update args, because of the clos
-                    // happens in template function
-                    templateArgs =
-                        this.isArgsLengthEqual(this.checkControlNodeEvents(controlNode, eventPropertyName, i), evArgs)
-                            ? controlNode.events[eventPropertyName][i].args : evArgs;
-                    try {
-                        if (!args.concat) {
-                            throw new Error(
-                                'Аргументы обработчика события ' + eventPropertyName.slice(3) + ' должны быть массивом.'
-                            );
-                        }
-                        /* Составляем массив аргументов для обаботчика. Первым аргументом будет объект события.
-                         Затем будут аргументы, переданные в обработчик в шаблоне, и последними - аргументы в _notify */
-                        finalArgs = [eventObject];
-                        Array.prototype.push.apply(finalArgs, templateArgs);
-                        Array.prototype.push.apply(finalArgs, args);
-                        // Добавляем в eventObject поле со ссылкой DOM-элемент, чей обработчик вызываем
-                        eventObject.currentTarget = curDomNode;
-
-                        /* Контрол может быть уничтожен, пока его дочернии элементы нотифаят асинхронные события,
-                           в таком случае не реагируем на события */
-                        /* Также игнорируем обработчики контрола, который выпустил событие.
-                         * То есть, сам на себя мы не должны реагировать
-                         * */
-                        if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control)) {
-                            try {
-                                // TODO: убрать проверку на тип события - сделать более универсальный метод возможно надо смотреть
-                                //  на eventObject.nativeEvent или вообще для всех?
-                                if (!fn.control._mounted && afterMountEvent.indexOf(eventObject.type) > -1) {
-                                    /* Асинхронный _afterMount контролов приводит к тому,
-                                     * что события с dom начинают стрелять до маунта,
-                                     * в таком случае их надо вызвать отложено */
-                                    callAfterMount.push({fn, finalArgs});
-                                } else {
-                                    let needCallHandler = native;
-                                    if (!needCallHandler) {
-                                        needCallHandler = !this.wasNotified(fn.control._instId, eventObject.type);
-                                        if (needCallHandler && this.needBlockNotifyState() && eventObject.type.indexOf('mouse') === -1) {
-                                            this.setWasNotifyList(fn.control._instId, eventObject.type);
-                                        }
-                                    }
-
-                                    if (needCallHandler) {
-                                        fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
-                                    }
-                                }
-                            } catch (err) {
-                                // в шаблоне могут указать неверное имя обработчика, следует выводить адекватную ошибку
-                                Logger.error(`Ошибка при вызове обработчика "${eventPropertyName}" из контрола ${fn.control._moduleName}.
-                     ${err.message}`, fn.control);
-                            }
-                        }
-                        /* для событий click отменяем стандартное поведение, если контрол уже задестроен.
-                         * актуально для ссылок, когда основное действие делать в mousedown, а он
-                         * срабатывает быстрее click'а. Поэтому контрол может быть уже задестроен
-                         */
-                        if (fn.control._destroyed && eventObject.type === 'click') {
-                            eventObject.preventDefault();
-                        }
-                        /* Проверяем, нужно ли дальше распространять событие по controlNodes */
-                        if (!eventObject.propagating()) {
-                            const needCallNext =
-                                !eventObject.isStopped() &&
-                                eventProperty[i + 1] &&
-                                // при деактивации контролов надо учитывать что событие может распространятся с partial
-                                // если не далать такую проверку то подписка on:deactivated на родителе partial не будет работать
-                                ((eventObject.type === 'deactivated' && eventProperty[i].toPartial) ||
-                                    eventProperty[i + 1].toPartial ||
-                                    eventProperty[i + 1].fn.controlDestination === eventProperty[i].fn.controlDestination);
-                            /* Если подписались на события из HOC'a, и одновременно подписались на контент хока, то прекращать
-                             распространение не нужно.
-                              Пример sync-tests/vdomEvents/hocContent/hocContent */
-                            if (!needCallNext) {
-                                stopPropagation = true;
-                            }
-                        }
-                    } catch (errorInfo) {
-                        let msg = `Event handle: "${eventObject.type}"`;
-                        let errorPoint;
-
-                        if (!fn.control) {
-                            if (typeof window !== 'undefined') {
-                                errorPoint = fn;
-                                msg += '; Error calculating the logical parent for the function';
-                            } else {
-                                errorPoint = curDomNode;
-                            }
-                        } else {
-                            errorPoint = fn.control;
-                        }
-                        Logger.error(msg, errorPoint, errorInfo);
-                    }
-                }
-            }
-            // TODO Remove when compatible is removed
-            if (curDomNode.compatibleNotifier && controlNode && controlNode.element !== curDomNode) {
-                const res = curDomNode.compatibleNotifier.notifyVdomEvent(
-                    eventObject.type,
-                    args,
-                    controlNode && controlNode.control
-                );
-                if (!eventObject.hasOwnProperty('result')) {
-                    eventObject.result = res;
-                }
-            }
-            curDomNode = curDomNode.parentNode;
-            if (curDomNode === null || curDomNode === undefined || !eventObject.propagating()) {
-                stopPropagation = true;
-            }
-            if (eventPropertiesStartArray !== undefined) {
-                eventPropertiesStartArray = undefined;
-            }
-        }
-    }
     //#endregion
 
     //#region специфические обработчики
@@ -386,15 +227,15 @@ abstract class WasabyEvents implements IWasabyEventSystem {
         this.wasNotifyList = [];
     }
 
-    private needBlockNotifyState(): boolean {
+    protected needBlockNotifyState(): boolean {
         return this.needBlockNotify;
     }
 
-    private setWasNotifyList(instId: string, eventType: string): void {
+    protected setWasNotifyList(instId: string, eventType: string): void {
         this.wasNotifyList.push(`${instId}_${eventType}`);
     }
 
-    private wasNotified(instId: string, eventType: string): boolean {
+    protected wasNotified(instId: string, eventType: string): boolean {
         return this.wasNotifyList.indexOf(`${instId}_${eventType}`) !== -1;
     }
     //#endregion
@@ -566,11 +407,11 @@ abstract class WasabyEvents implements IWasabyEventSystem {
         return window as unknown as HTMLElement;
     }
 
-    private isArgsLengthEqual(controlNodesArgs: any, evArgs: any): boolean {
+    protected isArgsLengthEqual(controlNodesArgs: any, evArgs: any): boolean {
         return controlNodesArgs && controlNodesArgs.args && controlNodesArgs.args.length === evArgs.length;
     }
 
-    private checkControlNodeEvents(controlNode: IControlNodeEvent, eventName: string, index: number): unknown {
+    protected checkControlNodeEvents(controlNode: IControlNodeEvent, eventName: string, index: number): unknown {
         return controlNode && controlNode.events && controlNode.events[eventName] && controlNode.events[eventName][index];
     }
 
