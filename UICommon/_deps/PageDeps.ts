@@ -1,6 +1,7 @@
 /// <amd-module name='UICommon/_deps/PageDeps' />
 import { cookie, constants } from 'Env/Env';
-import { DepsCollector, ICollectedFiles, IDeps } from './DepsCollector';
+import { DepsCollector } from './DepsCollector';
+import { ICollectedFiles, IDeps, IContents, IModulesDescription } from './Interface';
 
 /**
  * constants.resourceRoot указан путь до корневой директории сервиса,
@@ -118,30 +119,6 @@ function requireModuleDeps(path: string): IModulesDescription {
       /** Ошибка игнорируется т.к module-dependencies может отсутствовать */
       return noDescription;
    }
-}
-
-interface IContents {
-   buildMode: string;
-   buildnumber: string;
-   htmlNames: Record<string, string>;
-   jsModules: object;
-   modules: IModules;
-}
-export interface IModules {
-   [mod: string]: {
-      path?: string;
-   };
-}
-interface IModulesDeps {
-   nodes: Record<string, { path: string, amd: boolean; }>;
-   links: Record<string, IDeps>;
-   packedLibraries: Record<string, IDeps>;
-   lessDependencies: object;
-}
-type IBundlesRoute = Record<string, string>;
-
-interface IModulesDescription extends IModulesDeps {
-   bundles: IBundlesRoute;
 }
 
 /**

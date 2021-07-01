@@ -1,11 +1,7 @@
 import { constants } from 'Env/Env';
 import { headDataStore } from "./HeadData";
 import * as Library from "WasabyLoader/Library";
-
-interface IParsedName {
-    name: string;
-    path: string[];
-}
+import { IParsedName } from './Interface';
 
 /**
  * Добавить модуль в зависимости страницы.
