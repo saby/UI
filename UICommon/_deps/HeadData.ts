@@ -1,4 +1,6 @@
 /// <amd-module name="UICommon/_deps/HeadData" />
+import { constants } from 'Env/Env';
+import * as Library from 'WasabyLoader/Library';
 import { IDeps } from './DepsCollector';
 import PageDeps from './PageDeps';
 import * as AppEnv from 'Application/Env';
@@ -160,6 +162,23 @@ class HeadDataStore {
  * Singleton для работы со HeadData Store.
  */
 export const headDataStore = new HeadDataStore('HeadData');
+
+/**
+ * Добавить модуль в зависимости страницы.
+ * Метод актуален только на СП.
+ * @function
+ * @param modules список с названиями модулей, в обычном (Foo/bar) или библиотечном (Foo/bar:baz) синтаксисе
+ * @public
+ */
+export function addPageDeps(modules: string[]): void {
+    if (constants.isBrowserPlatform || !modules || !modules.length) {
+        return;
+    }
+    modules.forEach((moduleName) => {
+        const parsedInfo: {name: string} = Library.parse(moduleName);
+        headDataStore.read('pushDepComponent')(parsedInfo.name);
+    });
+}
 
 function getSerializedData(): ISerializedData {
     return AppEnv.getStateReceiver().serialize();
