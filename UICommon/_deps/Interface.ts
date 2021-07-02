@@ -82,11 +82,6 @@ export interface IDepPackages extends Record<RequireJSPlugin, IDepPack> {
     css: IDepCSSPack;
 }
 
-export interface IParsedName {
-    name: string;
-    path: string[];
-}
-
 export interface IContents {
     buildMode: string;
     buildnumber: string;
