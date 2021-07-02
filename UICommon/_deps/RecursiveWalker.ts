@@ -1,7 +1,6 @@
 /// <amd-module name="UICommon/_deps/RecursiveWalker" />
 
 import { constants, cookie } from 'Env/Env';
-import { DepsCollector } from 'UICommon/_deps/DepsCollector';
 import {
     DEPTYPES,
     ICollectedDepsRaw, ICollectedFiles, IContents, IDepCSSPack,
@@ -36,7 +35,6 @@ try {
     }
 }
 const { links, nodes, bundles } = getModulesDeps(contents.modules);
-const depsCollector = new DepsCollector(links, nodes, bundles);
 
 /**
  * Соответствие плагина i18n библиотеке I18n/i18n
@@ -400,6 +398,12 @@ export function isDebug(): boolean {
     return cookie.get('s3debug') === 'true' || contents.buildMode === 'debug';
 }
 
-export function getDepsCollector(): DepsCollector {
-    return depsCollector;
+export function getDepsCollectorParams(): IModulesDescription {
+    return {
+        links,
+        nodes,
+        bundles,
+        packedLibraries: {},
+        lessDependencies: {}
+    };
 }

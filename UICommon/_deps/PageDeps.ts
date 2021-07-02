@@ -1,7 +1,11 @@
 /// <amd-module name='UICommon/_deps/PageDeps' />
 
 import { ICollectedFiles, IDeps } from './Interface';
-import { getUnpackDepsFromCookie, getDebugDeps, getDepsCollector, isDebug } from 'UICommon/_deps/RecursiveWalker';
+import { DepsCollector } from 'UICommon/_deps/DepsCollector';
+import { getUnpackDepsFromCookie, getDebugDeps, getDepsCollectorParams, isDebug } from 'UICommon/_deps/RecursiveWalker';
+
+const { links, nodes, bundles } = getDepsCollectorParams();
+const depsCollector = new DepsCollector(links, nodes, bundles);
 
 export default class PageDeps {
 
@@ -10,6 +14,6 @@ export default class PageDeps {
          return getDebugDeps(initDeps);
       }
       const unpack = getUnpackDepsFromCookie().concat(unpackRtPackDeps);
-      return getDepsCollector().collectDependencies(initDeps, unpack);
+      return depsCollector.collectDependencies(initDeps, unpack);
    }
 }
