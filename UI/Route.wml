@@ -1,5 +1,5 @@
-<ws:partial
-   template="{{ application }}"
+<UI._base.RouteCompatible
+   application="{{application}}"
    scope="{{_options}}"
    attr:key="bd_"
    wsRoot="{{ wsRoot }}"
