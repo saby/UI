@@ -12,7 +12,8 @@ import {
     IFixedEvent,
     SwipeController,
     LongTapController,
-    TouchHandlers, ISyntheticEvent
+    TouchHandlers,
+    ISyntheticEvent
 } from 'UICommon/Events';
 import {
     IControlNodeEvent,
@@ -23,7 +24,11 @@ import {
     IDOMEnvironment,
     IControlNode
 } from 'UICore/interfaces';
-import {IArrayEvent} from '../../../UICommon/_events/IEvents';
+
+interface IArrayEvent {
+    fn: Record<string, Function>;
+    finalArgs: Record<string, unknown>[];
+}
 
 const callAfterMount: IArrayEvent[] = [];
 const afterMountEvent: string[] = ['mouseenter', 'mousedown'];

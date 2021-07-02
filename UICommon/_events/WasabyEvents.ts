@@ -1,13 +1,11 @@
 import {detection} from 'Env/Env';
-import {Logger} from 'UICommon/Utils';
 
 import * as EventUtils from './EventUtils';
 import {
     ISyntheticEvent,
     IEventConfig,
     IWasabyEventSystem,
-    IHandlerInfo,
-    IArrayEvent
+    IHandlerInfo
 } from './IEvents';
 
 import {TouchHandlers} from './Touch/TouchHandlers';
