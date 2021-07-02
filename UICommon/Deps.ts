@@ -7,8 +7,6 @@
  * @author Мустафин Л.И.
  */
 
-export { aggregateCSS, aggregateJS, aggregateDependencies, BASE_DEPS_NAMESPACE,
-         TIMETESTER_SCRIPTS_NAMESPACE } from './_deps/DependenciesPlaceholder';
 export { isModuleExists } from './_deps/PageDeps';
 
 import HeadData, { headDataStore, addPageDeps } from './_deps/HeadData';
