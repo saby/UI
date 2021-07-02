@@ -414,7 +414,7 @@ export class GeneratorVdom implements IGenerator {
          attrs = {attributes: {}, events: {}, key: ''};
       }
 
-      if (Object.keys(attrs.events).length) {
+      if (attrs.events && Object.keys(attrs.events).length) {
          const eventsMeta = {...attrs.events.meta};
          delete attrs.events.meta;
          Object.defineProperty(attrs.events, 'meta', {

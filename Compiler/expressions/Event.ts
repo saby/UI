@@ -60,7 +60,7 @@ EventChain.prepareEventChain = function prepareEventChain(originChain?: EventCha
    return originChain;
 };
 
-interface IEventProcess {
+export interface IEventProcess {
    chain: EventChain;
    eventMeta?: IEventMeta;
 }

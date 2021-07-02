@@ -191,6 +191,7 @@ define('Compiler/modules/utils/parse', [
       }
       var eventMeta = {};
       var needEventMeta = true;
+      var eventObject;
       for (var attr in attribs) {
          if (bindExpressions.isBind(attr)) {
             var cleanAttributeName = bindExpressions.getBindAttributeName(attr);
@@ -198,9 +199,14 @@ define('Compiler/modules/utils/parse', [
                // Processing bind expression ("bind:...")
                var eventAttributeName = bindExpressions.getEventAttributeName(attr);
                var eventChain = result.events[eventAttributeName.toLowerCase()];
-               result.events[eventAttributeName.toLowerCase()] = bindExpressions.processBindAttribute(
-                  attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage, eventChain
+               eventObject = bindExpressions.processBindAttribute(
+                  attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage, eventChain, needEventMeta
                );
+               result.events[eventAttributeName.toLowerCase()] = eventObject.chain;
+               if (needEventMeta) {
+                  eventMeta = eventObject.eventMeta;
+                  needEventMeta = false;
+               }
             } catch (error) {
                errorHandler.error(
                   'На теге "' + tag.originName + '" значение атрибута "' + attr + '" некорректно "' +
@@ -219,7 +225,7 @@ define('Compiler/modules/utils/parse', [
             }
          } else if (eventExpressions.isEvent(attr)) {
             try {
-               var eventObject = eventExpressions.processEventAttribute(
+               eventObject = eventExpressions.processEventAttribute(
                   attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage, needEventMeta
                );
                var eventName = attr.toLowerCase();

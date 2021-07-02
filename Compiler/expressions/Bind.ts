@@ -4,7 +4,7 @@
  */
 
 import { BindExpressionVisitor } from 'Compiler/codegen/Expression';
-import { EventNode, EventChain, IAttributeValue } from './Event';
+import { EventNode, EventChain, IAttributeValue, IEventProcess } from './Event';
 import * as FSC from 'Compiler/modules/data/utils/functionStringCreator';
 
 /**
@@ -96,6 +96,7 @@ export function visitBindExpressionNew(
  * @param fileName {string} Имя файла шаблона.
  * @param childrenStorage {string[]} Набор имен детей (свойство _children контрола).
  * @param eventChain {EventChain} Цепочка обработчиков для данного события либо undefined.
+ * @param calculateMeta {boolean} Флаг вычисления мета информации событий
  */
 export function processBindAttribute(
    value: IAttributeValue,
@@ -104,8 +105,9 @@ export function processBindAttribute(
    isControl: boolean,
    fileName: string,
    childrenStorage: string[],
-   eventChain?: EventChain
-): EventChain {
+   eventChain?: EventChain,
+   calculateMeta?: boolean
+): IEventProcess {
 
    const funcName = getFunctionName(attributeName);
    let fn = visitBindExpressionNew(value, data, fileName, attributeName);
@@ -116,10 +118,19 @@ export function processBindAttribute(
       viewController: FSC.wrapAroundExec('viewController'),
       data: FSC.wrapAroundExec('data'),
       handler: fn,
-      isControl: isControl
+      isControl
    });
    chain.unshift(eventNode);
 
    eventNode.bindValue = value.data[0].name.string;
-   return chain;
+   if (calculateMeta) {
+      const eventMeta = {
+         isControl,
+         context: FSC.wrapAroundExec('(function(){ return this; })'),
+         handler: FSC.wrapAroundExec('function(handlerName){ return thelpers.getter(this, [handlerName]); }')
+      };
+      return {chain, eventMeta};
+   }
+
+   return {chain};
 }
