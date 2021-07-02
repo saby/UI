@@ -5,6 +5,7 @@
  */
 
 import { isAttr, checkAttr } from './AttrHelper';
+import {func} from 'prop-types';
 
 export { isAttr, checkAttr };
 
@@ -270,8 +271,27 @@ export function mergeAttrs(attr1, attr2) {
    return finalAttr;
 }
 
+function findEventMeta(events) {
+   for (const name in events) {
+      if (events.hasOwnProperty('meta')) {
+         const eventsMeta = {...events.meta};
+         delete events.meta;
+         setEventMeta(events, eventsMeta);
+      }
+   }
+}
+
+function setEventMeta(events, eventsMeta) {
+   Object.defineProperty(events, 'meta', {
+      configurable: true,
+      value: eventsMeta
+   });
+}
+
 export function mergeEvents(events1, events2, preventMergeEvents = false) {
    var finalAttr = {}, name;
+   findEventMeta(events1);
+   findEventMeta(events2);
    for (name in events1) {
       if (events1.hasOwnProperty(name)) {
          finalAttr[name] = events1[name];
@@ -288,16 +308,10 @@ export function mergeEvents(events1, events2, preventMergeEvents = false) {
       }
    }
    if (events1 && events1.hasOwnProperty('meta')) {
-      Object.defineProperty(finalAttr, 'meta', {
-         configurable: true,
-         value: events1.meta
-      });
+      setEventMeta(finalAttr, events1.meta);
    }
    if (events2 && events2.hasOwnProperty('meta')) {
-      Object.defineProperty(finalAttr, 'meta', {
-         configurable: true,
-         value: events2.meta
-      });
+      setEventMeta(finalAttr, events2.meta);
    }
    return finalAttr;
 }

@@ -127,6 +127,12 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
         const domElement = element._container || element;
         const events = props.events;
         const eventSystem = WasabyEventsReact.getInstance();
+        const eventsMeta = {...events.meta};
+        delete events.meta;
+        Object.defineProperty(events, 'meta', {
+            configurable: true,
+            value: eventsMeta
+        });
         this.prepareEvents(events);
         if (!this.haveEvents(events)) {
             return;
