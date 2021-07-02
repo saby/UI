@@ -1,6 +1,5 @@
 /// <amd-module name="UI/_base/HTML/JsLinks" />
 
-import { JSLinks as AppJSLinks } from 'Application/_Page/JSLinks';
 import { cookie } from 'Env/Env';
 import { ICollectedDeps } from '../../../UICommon/_deps/Interface';
 import { Control } from 'UICore/Base';
@@ -11,7 +10,7 @@ import { TemplateFunction } from 'UICommon/Base';
 import template = require('wml!UI/_base/HTML/JsLinks');
 import { headDataStore } from 'UICommon/Deps';
 import { IControlOptions } from 'UI/Base';
-import { JSLinks } from 'Application/Page';
+import { JSLinks as AppJSLinks } from 'Application/Page';
 import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
@@ -32,7 +31,7 @@ class JsLinks extends Control<IJsLinksOptions> {
          return;
       }
       return headDataStore.read('waitAppContent')().then((res) => {
-         const jslinksAPI = JSLinks.getInstance();
+         const jslinksAPI = AppJSLinks.getInstance();
          aggregateJS(res);
          const data = jslinksAPI.getData();
          if (data && data.length) {
