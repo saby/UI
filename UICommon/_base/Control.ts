@@ -36,8 +36,9 @@ interface IErrorConfig {
     error?: Error;
 }
 
-interface IStable {
+interface ITemplateFlags {
     stable: boolean;
+    isWasabyTemplate?: boolean;
 }
 
 // TODO: в 3000 исправить тип возвращаемого значения. Только string для совместимости.
@@ -56,4 +57,4 @@ type TTemplateFunction = (
  * @typedef UICommon/_base/Control#TemplateFunction
  * @public
  */
-export type TemplateFunction = TTemplateFunction & IStable;
+export type TemplateFunction = TTemplateFunction & ITemplateFlags;

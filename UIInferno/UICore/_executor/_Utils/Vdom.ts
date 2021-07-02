@@ -5,9 +5,9 @@
 /**
  * @author Тэн В.А.
  */
-
 import {
    InfernoText, VNode, ChildFlags, TKey,
+   createPortal,
    getFlagsForElementVnode, createVNode, createTextVNode
 } from 'Inferno/third-party/index';
 
@@ -20,6 +20,8 @@ function getChildFlags(children: VNode['children'], key: TKey): ChildFlags {
    }
    return 0 /* UnknownChildren */;
 }
+
+export const portalTagName = 1024;
 
 /**
  * Create virtual node of html element.
@@ -36,6 +38,12 @@ export function htmlNode(
    key: VNode['key'],
    ref?: VNode['ref']
 ): VNode {
+   if (tagName === portalTagName) {
+      const portralVnode = createPortal(children, ref);
+      portralVnode.hprops = hprops;
+      portralVnode.children = children;
+      return portralVnode;
+   }
    const flags = getFlagsForElementVnode(tagName);
    const className = (hprops && hprops.attributes && hprops.attributes['class']) || '';
    const childFlags = getChildFlags(children, key);

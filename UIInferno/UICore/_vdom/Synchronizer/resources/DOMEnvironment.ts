@@ -4,14 +4,15 @@
 import { detection } from 'Env/Env';
 import { Logger, isNewEnvironment } from 'UICommon/Utils';
 import {ElementFinder, Events, focus, preventFocus, hasNoFocus} from 'UICore/Focus';
+import { portalTagName } from 'UICore/Executor';
 import { goUpByControlTree } from 'UICore/NodeCollector';
 import { WasabyEvents } from 'UICore/Events';
 import {
-   TModifyHTMLNode
+   TModifyHTMLNode, IHandlerInfo
 } from 'UICommon/interfaces';
 import {
    IDOMEnvironment, TControlStateCollback,
-   TMarkupNodeDecoratorFn, IHandlerInfo,
+   TMarkupNodeDecoratorFn,
    TComponentAttrs,
    IControlNode
 } from 'UICore/interfaces';
@@ -47,8 +48,7 @@ function createRecursiveVNodeMapper(fn: any): any {
       childrenRest = newChildren.map(
           (child: VNode) => {
              return mapVNode(recursiveVNodeMapperFn, controlNode, child);
-          }
-      );
+         });
       fnRes = [fnRes[0], fnRes[1], childrenRest, fnRes[3], fnRes[4]];
 
       return fnRes;

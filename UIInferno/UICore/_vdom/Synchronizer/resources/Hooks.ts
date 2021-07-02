@@ -1,4 +1,5 @@
 import { EventUtils, isInvisibleNode } from 'UICommon/Events';
+import { portalTagName } from 'UICore/Executor';
 import { IProperties, IWasabyHTMLElement, IEvent, TEventsObject, TControlId } from 'UICommon/interfaces';
 import {
     IDOMEnvironment,
@@ -179,6 +180,15 @@ export function setControlNodeHook(
     controlNode: IControlNode,
     ref?: TRef
 ): [string, IProperties, IControlNode[], TControlId | 0, TRef] {
+    if (tagName === portalTagName as unknown as string) {
+        // Поскольку у портала в качестве рефа ДОМ элемент, мы не сможем повесить _container, как для других контролов.
+        // Попробуем вешать контейнер опенера.
+        // Если что-то пойдёт не так - можно будет дождаться рефа ребёнка и присвоить контейнер оттуда.
+        const element: IWasabyHTMLElement = ref as unknown as IWasabyHTMLElement;
+        controlNode.control._container = element;
+        controlNode.element = element;
+        return [tagName, props, children, key, ref];
+    }
     const environment: IDOMEnvironment = controlNode.environment;
     let savedElement: IWasabyHTMLElement;
 
@@ -210,6 +220,9 @@ export function setEventHook(
     controlNode: IControlNode,
     ref?: TRef
 ): [string, IProperties, IControlNode[], TControlId | 0, TRef] {
+    if (tagName === portalTagName as unknown as string) {
+        return [tagName, props, children, key, ref];
+    }
     const events: TEventsObject = props.events;
     const environment: IDOMEnvironment = controlNode.environment;
     let savedElement: IWasabyHTMLElement;

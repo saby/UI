@@ -1,0 +1,10 @@
+<div>
+    <div>Проверка событий сквозь портал. Счётчик снаружи портала: {{ counter }}</div>
+    <UI.Base:WasabyPortal portalContainer="{{ _options.opener._container }}">
+        <div style="border: 2px solid blue;">
+            <h1>Портал</h1>
+            <div>Живой контент внутри портала:</div>
+            <UIDemo.PortalDemo.LiveContent on:counterChanged="updateOunterCounter()" />
+        </div>
+    </UI.Base:WasabyPortal>
+</div>

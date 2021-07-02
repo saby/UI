@@ -1,0 +1,5 @@
+<div>
+    <h1>Опенер</h1>
+    <div>Живой контент Опенера:</div>
+    <UIDemo.PortalDemo.LiveContent />
+</div>

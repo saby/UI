@@ -3,6 +3,8 @@ export { default as Control, IControlChildren, IControlConstructor }  from './_b
 import { logger } from 'Application/Env';
 import { IGeneratorConfig } from 'UICommon/Executor';
 
+export { default as WasabyPortal } from './_base/WasabyPortal';
+
 // TODO: реализовать или не использовать.
 export function getGeneratorConfig(): IGeneratorConfig | void {
     logger.error('В сборке на Реатке нет метода getGeneratorConfig');

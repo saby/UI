@@ -1,0 +1,18 @@
+<div style="marging: 10px; font-size: 20px;">
+    <h1>Коревой контрол</h1>
+    <div>Живой контент Корневого контрола:</div>
+    <UIDemo.PortalDemo.LiveContent />
+
+    <div><button on:click="togglePortal()">{{ showPortal ? 'Закрыть' : 'Открыть' }} портал</button></div>
+    <div><button on:click="toggleOpener()">{{ showOpener ? 'Закрыть' : 'Открыть' }} опенер</button></div>
+
+    <div>Див перед точкой вставки портала в шаблоне</div>
+    <ws:if data="{{ showPortal }}">
+        <UIDemo.PortalDemo.ToBePortal opener="{{ _children.opener }}" />
+    </ws:if>
+    <div>Див после точки вставки портала в шаблоне</div>
+
+    <ws:if data="{{ showOpener }}">
+        <UIDemo.PortalDemo.Opener name="opener" />
+    </ws:if>
+</div>
