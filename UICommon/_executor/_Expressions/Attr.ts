@@ -207,7 +207,7 @@ function processFinalAttributes(attr1, attr2) {
             finalAttr.class = getClass(finalAttr, attr2);
          } else if (name === 'style') {
             finalAttr.style = getStyle(finalAttr, attr2);
-         // We have to rewrite parents keys, so on any depth level we can change attr:key attribute
+            // We have to rewrite parents keys, so on any depth level we can change attr:key attribute
          } else if (name === 'key') {
             finalAttr[name] = attr2[name];
          } else if (!finalAttr.hasOwnProperty(name)) {
@@ -235,7 +235,7 @@ export function mergeAttrs(attr1, attr2) {
    attr2 = attr2 || {};
 
    var finalAttr: any = {},
-      name;
+       name;
    for (name in attr1) {
       if (attr1.hasOwnProperty(name) && attr1[name] !== undefined && attr1[name] !== null) {
          finalAttr[name] = attr1[name] !== '' ? attr1[name] : undefined;
@@ -247,7 +247,7 @@ export function mergeAttrs(attr1, attr2) {
             finalAttr.class = getClass(finalAttr, attr2);
          } else if (name === 'style') {
             finalAttr.style = getStyle(finalAttr, attr2);
-         // children key value should be always preferable over parent
+            // children key value should be always preferable over parent
          } else if (name === 'key') {
             finalAttr.key = attr2[name];
          } else if (name === 'alt') {
@@ -286,6 +286,18 @@ export function mergeEvents(events1, events2, preventMergeEvents = false) {
       if (events2.hasOwnProperty(name)){
          finalAttr[name] = (finalAttr[name] && !preventMergeEvents) ? events2[name].concat(finalAttr[name]) : events2[name];
       }
+   }
+   if (events1 && events1.hasOwnProperty('meta')) {
+      Object.defineProperty(finalAttr, 'meta', {
+         configurable: true,
+         value: events1.meta
+      });
+   }
+   if (events2 && events2.hasOwnProperty('meta')) {
+      Object.defineProperty(finalAttr, 'meta', {
+         configurable: true,
+         value: events2.meta
+      });
    }
    return finalAttr;
 }

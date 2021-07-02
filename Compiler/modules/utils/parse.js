@@ -189,6 +189,9 @@ define('Compiler/modules/utils/parse', [
 
          // delete attribs['attributes'];
       }
+      var eventMeta = {};
+      var needEventMeta = true;
+      var eventObject;
       for (var attr in attribs) {
          if (bindExpressions.isBind(attr)) {
             var cleanAttributeName = bindExpressions.getBindAttributeName(attr);
@@ -196,9 +199,14 @@ define('Compiler/modules/utils/parse', [
                // Processing bind expression ("bind:...")
                var eventAttributeName = bindExpressions.getEventAttributeName(attr);
                var eventChain = result.events[eventAttributeName.toLowerCase()];
-               result.events[eventAttributeName.toLowerCase()] = bindExpressions.processBindAttribute(
-                  attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage, eventChain
+               eventObject = bindExpressions.processBindAttribute(
+                  attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage, eventChain, needEventMeta
                );
+               result.events[eventAttributeName.toLowerCase()] = eventObject.chain;
+               if (needEventMeta) {
+                  eventMeta = eventObject.eventMeta;
+                  needEventMeta = false;
+               }
             } catch (error) {
                errorHandler.error(
                   'На теге "' + tag.originName + '" значение атрибута "' + attr + '" некорректно "' +
@@ -217,15 +225,19 @@ define('Compiler/modules/utils/parse', [
             }
          } else if (eventExpressions.isEvent(attr)) {
             try {
-               var eventObject = eventExpressions.processEventAttribute(
-                  attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage
+               eventObject = eventExpressions.processEventAttribute(
+                  attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage, needEventMeta
                );
                var eventName = attr.toLowerCase();
+               if (needEventMeta) {
+                  eventMeta = eventObject.eventMeta;
+                  needEventMeta = false;
+               }
                if (result.events[eventName] === undefined) {
-                  result.events[eventName] = eventObject;
+                  result.events[eventName] = eventObject.chain;
                } else {
                   // If event with the same name already present, add object to the array
-                  result.events[eventName].push(eventObject[0]);
+                  result.events[eventName].push(eventObject.chain[0]);
                }
             } catch (error) {
                errorHandler.error(
@@ -279,6 +291,9 @@ define('Compiler/modules/utils/parse', [
             true
          );
       }
+      if (!needEventMeta) {
+         result.events.meta = eventMeta;
+      }
       return result;
    }
 
@@ -287,7 +302,9 @@ define('Compiler/modules/utils/parse', [
          return undefined;
       }
       var result = processAttributes.call(this, attribs, data, decor, isControl, tag);
-      result.events = FSC.wrapAroundExec('typeof window === "undefined"?{}:' + FSC.getStr(result.events));
+      if (Object.keys(result.events).length) {
+         result.events = FSC.wrapAroundExec('typeof window === "undefined"?{}:' + FSC.getStr(result.events));
+      }
       return result;
    }
 

@@ -78,6 +78,7 @@ export interface IWasabyEvent {
     isControl: boolean;
     value: string;
     viewController: IControl;
+    bindValue?: string;
 }
 
 export interface IWasabyEventSystem {

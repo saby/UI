@@ -24,7 +24,8 @@ import {
    TIncludedTemplate,
    TObject,
    IControlUserData,
-   IControlConfig
+   IControlConfig,
+   getter
 } from 'UICommon/Executor';
 
 const defRegExp = /(\[def-[\w\d]+\])/g;
@@ -200,9 +201,9 @@ function checkResult(res: GeneratorObject | Promise<unknown> | Error,
    }
    if (typeof name === 'undefined') {
       Logger.error('Попытка использовать компонент/шаблон, ' +
-         'но вместо компонента в шаблоне в опцию template был передан undefined! ' +
-         'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
-         'По стеку будет понятно, в каком шаблоне и в какую опцию передается undefined');
+          'но вместо компонента в шаблоне в опцию template был передан undefined! ' +
+          'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
+          'По стеку будет понятно, в каком шаблоне и в какую опцию передается undefined');
       return this.createEmptyText();
    }
    throw new Error('MarkupGenerator: createControl type not resolved');
@@ -215,15 +216,15 @@ interface INewArguments {
 }
 
 function prepareNewArguments(
-   attributes: any,
-   events: any,
-   options: any, // FIXME: Record<string, unknown>
-   config: IControlConfig
+    attributes: any,
+    events: any,
+    options: any, // FIXME: Record<string, unknown>
+    config: IControlConfig
 ): INewArguments {
    const decorAttribs = {
       attributes: config.compositeAttributes === null
-         ? attributes
-         : Helper.processMergeAttributes(config.compositeAttributes, <any>attributes),
+          ? attributes
+          : Helper.processMergeAttributes(config.compositeAttributes, <any>attributes),
       events,
       context: config.attr ? config.attr.context : { },
       inheritOptions: config.attr ? config.attr.inheritOptions : { },
@@ -231,10 +232,10 @@ function prepareNewArguments(
       key: config.key
    };
    const actualAttributes = config.mergeType === 'attribute'
-      ? Helper.plainMergeAttr(config.attr, decorAttribs, options)
-      : config.mergeType === 'context'
-         ? Helper.plainMergeContext(config.attr, decorAttribs, options)
-         : decorAttribs;
+       ? Helper.plainMergeAttr(config.attr, decorAttribs, options)
+       : config.mergeType === 'context'
+           ? Helper.plainMergeContext(config.attr, decorAttribs, options)
+           : decorAttribs;
    actualAttributes.key = Helper.calculateKey(decorAttribs, config.attr);
 
    const actualOptions = config.scope === null ? options : Helper.uniteScope(config.scope, options);
@@ -273,33 +274,33 @@ export class Generator {
    }
 
    createControlNew(
-      type: string,
-      method: Function,
-      attributes: Record<string, unknown>,
-      events: Record<string, unknown>,
-      options: any, // FIXME: Record<string, unknown>
-      config: IControlConfig
+       type: string,
+       method: Function,
+       attributes: Record<string, unknown>,
+       events: Record<string, unknown>,
+       options: any, // FIXME: Record<string, unknown>
+       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
       // тип контрола - inline-шаблон
       if (type === 'inline') {
          const args = prepareNewArguments(attributes, events, options, config);
          const attrsForTemplate = args.attributes;
          const scopeForTemplate = Common.plainMerge(
-            Object.create(config.data || {}),
-            this.prepareDataForCreate(
-               "_$inline_template",
-               args.options,
-               attrsForTemplate,
-               {}
-            ),
-            false
+             Object.create(config.data || {}),
+             this.prepareDataForCreate(
+                 "_$inline_template",
+                 args.options,
+                 attrsForTemplate,
+                 {}
+             ),
+             false
          );
          return method.call(
-            /* template *this* */config.ctx,
-            scopeForTemplate,
-            attrsForTemplate,
-            config.context,
-            config.isVdom
+             /* template *this* */config.ctx,
+             scopeForTemplate,
+             attrsForTemplate,
+             config.context,
+             config.isVdom
          );
       }
 
@@ -372,7 +373,7 @@ export class Generator {
       // когда тип вычисляемый, запускаем функцию вычисления типа и там обрабатываем тип
       if (type === 'resolver') {
          let handl, i;
-         if (attrs.events) {
+         if (attrs.events && Object.keys(attrs.events).length) {
             for (i in attrs.events) {
                if (attrs.events.hasOwnProperty(i)) {
                   for (handl = 0; handl < attrs.events[i].length; handl++) {
@@ -490,7 +491,7 @@ export class Generator {
       let res;
       const type = 'resolver';
       let handl, i;
-      if (attrs.events) {
+      if (attrs.events && Object.keys(attrs.events).length) {
          for (i in attrs.events) {
             if (attrs.events.hasOwnProperty(i)) {
                for (handl = 0; handl < attrs.events[i].length; handl++) {
@@ -572,7 +573,7 @@ export class Generator {
       // когда тип вычисляемый, запускаем функцию вычисления типа и там обрабатываем тип
       if (type === 'resolver') {
          let handl, i;
-         if (attrs.events) {
+         if (attrs.events && Object.keys(attrs.events).length) {
             for (i in attrs.events) {
                if (attrs.events.hasOwnProperty(i)) {
                   for (handl = 0; handl < attrs.events[i].length; handl++) {
@@ -596,10 +597,19 @@ export class Generator {
       Object.keys(events).forEach((eventName) => {
          const eventArr = events[eventName];
          eventArr.forEach((event) => {
-            if (event.args) {
+            if (event.bindValue) {
+               event.fn = function (eventObj, value) {
+                  if (!event.handler(this.viewController, value)) {
+                     event.handler(this.data, value);
+                  }
+               };
+            } else {
                event.fn = function (eventObj) {
-                  const context = event.context.apply(this.viewController);
-                  const handler = event.handler.apply(this.viewController);
+                  const preparedContext = event.context || events.meta.context;
+                  const context = preparedContext.apply(this.viewController);
+                  const handler = event.handler ?
+                      event.handler.apply(this.viewController) :
+                      events.meta.handler.apply(this.viewController, [event.value]);
                   if (typeof handler === 'undefined') {
                      throw new Error(`Отсутствует обработчик ${ event.value } события ${ eventObj.type } у контрола ${ event.viewController._moduleName }`);
                   }
@@ -608,14 +618,7 @@ export class Generator {
                      eventObj.result = res;
                   }
                };
-            } else {
-               event.fn = function (eventObj, value) {
-                  if (!event.handler(this.viewController, value)) {
-                     event.handler(this.data, value)
-                  }
-               };
             }
-
             event.fn = event.fn.bind({
                viewController: event.viewController,
                data: event.data
@@ -651,7 +654,13 @@ export class Generator {
       } else {
          // @ts-ignore
          const prepareEvents = this.prepareEvents || this.generatorBase.prepareEvents;
-         if (attrs.events) {
+         if (attrs.events && Object.keys(attrs.events).length) {
+            const eventsMeta = {...attrs.events.meta};
+            delete attrs.events.meta;
+            Object.defineProperty(attrs.events, 'meta', {
+               configurable: true,
+               value: eventsMeta
+            });
             prepareEvents(attrs.events);
          }
       }
