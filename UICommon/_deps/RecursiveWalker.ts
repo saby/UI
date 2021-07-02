@@ -34,6 +34,13 @@ try {
         contents = {};
     }
 }
+const noDescription: IModulesDescription = {
+    bundles: {},
+    nodes: {},
+    links: {},
+    packedLibraries: {},
+    lessDependencies: {}
+};
 const { links, nodes, bundles } = getModulesDeps(contents.modules);
 
 /**
@@ -43,13 +50,6 @@ const { links, nodes, bundles } = getModulesDeps(contents.modules);
  */
 const SPECIAL_DEPS = {
     i18n: 'I18n/i18n'
-};
-const noDescription: IModulesDescription = {
-    bundles: {},
-    nodes: {},
-    links: {},
-    packedLibraries: {},
-    lessDependencies: {}
 };
 /**
  * Название модуля WS.Core, который будет указан в s3debug при частичном дебаге
@@ -90,7 +90,7 @@ function getExt(fileName: string): string {
         return res[0].slice(1);
     }
 
-    const message = `[UICommon/_deps/DepsCollector:getExt] Incorrect extension: ${fileName}`;
+    const message = `[UICommon/_deps/RecursiveWalker:getExt] Incorrect extension: ${fileName}`;
     Logger.error(message);
     return '';
 }
