@@ -147,6 +147,19 @@ export class GeneratorVdom extends Generator implements IGenerator {
          * без этого события объявленные на контроле будут потеряны
          */
         const extractedEvents = { ...attrToDecorate.events, ...attrs.events };
+        if (Object.keys(extractedEvents).length) {
+            let eventsMeta;
+            if (attrToDecorate.events && attrToDecorate.events.meta && Object.keys(attrToDecorate.events.meta).length) {
+                eventsMeta = {...attrToDecorate.events.meta};
+            }
+            if (attrs.events && attrs.events.meta && Object.keys(attrs.events.meta).length) {
+                eventsMeta = {...attrs.events.meta};
+            }
+            Object.defineProperty(extractedEvents, 'meta', {
+                configurable: true,
+                value: eventsMeta
+            });
+        }
         const eventsObject = {
             events: extractedEvents
         };

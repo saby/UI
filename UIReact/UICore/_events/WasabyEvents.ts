@@ -305,6 +305,18 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
                 mergedEvents[key] = newEvents[key];
             }
         }
+
+        let eventsMeta;
+        if (currentEvents && currentEvents.meta && Object.keys(currentEvents.meta).length) {
+            eventsMeta = {...currentEvents.meta};
+        }
+        if (newEvents && newEvents.meta && Object.keys(newEvents.meta).length) {
+            eventsMeta = {...newEvents.meta};
+        }
+        Object.defineProperty(mergedEvents, 'meta', {
+            configurable: true,
+            value: eventsMeta
+        });
         return mergedEvents;
     }
 }
