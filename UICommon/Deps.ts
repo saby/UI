@@ -7,7 +7,7 @@
  * @author Мустафин Л.И.
  */
 
-export { isModuleExists } from './_deps/PageDeps';
+export { isModuleExists } from './_deps/RecursiveWalker';
 
 import HeadData, { headDataStore, addPageDeps } from './_deps/HeadData';
 import { DepsCollector } from './_deps/DepsCollector';
