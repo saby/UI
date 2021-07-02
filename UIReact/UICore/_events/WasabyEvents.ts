@@ -11,7 +11,8 @@ import {
     LongTapController,
     IWasabyEvent,
     EventUtils,
-    TouchHandlers, ISyntheticEvent
+    TouchHandlers,
+    ISyntheticEvent
 } from 'UICommon/Events';
 import {
     IWasabyHTMLElement,
@@ -21,7 +22,7 @@ import {
 import { WasabyEventsDebug } from './WasabyEventsDebug';
 import { Control } from 'UICore/Control';
 import { Set } from 'Types/shim';
-import {Logger} from '../../../UICommon/Utils';
+import { Logger } from 'UICommon/Utils';
 
 type TElement =  HTMLElement & {
     eventProperties?: Record<string, IWasabyEvent[]>;
