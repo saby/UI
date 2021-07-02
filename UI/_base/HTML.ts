@@ -238,7 +238,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
             this.metaStack.remove(prevState);
         }
     }
-    _afterMount(): void {
+    _afterMount(options: IHTMLCombinedOptions): void {
         mountChecker.stop();
         function inIframe(): boolean {
             try {
@@ -256,6 +256,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
             this.activate();
         }
         this._hideOverlay();
+        AppBody.getInstance().replaceClasses([], (options.bodyClass || '').split(' '));
     }
 
     private _hideOverlay(): void {
