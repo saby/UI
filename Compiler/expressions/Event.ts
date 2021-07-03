@@ -33,6 +33,7 @@ export interface IAttributeValue {
  */
 const EVENT_NAME_PATTERN = /^(on:[A-z0-9])\w*$/;
 
+
 /**
  * Класс цепочки обработчиков. Содержит коллекцию узлов EventNode для конкретного события.
  *
@@ -59,13 +60,22 @@ EventChain.prepareEventChain = function prepareEventChain(originChain?: EventCha
    return originChain;
 };
 
+export interface IEventProcess {
+   chain: EventChain;
+   eventMeta?: IEventMeta;
+}
+interface IEventMeta {
+   isControl: boolean;
+   context: string;
+}
+
 interface IEventNodeCfg {
    args?: string;
    value: string;
    viewController: string;
    data?: string;
-   handler: string;
-   isControl: boolean;
+   handler?: string;
+   isControl?: boolean;
    context?: string;
 }
 
@@ -113,15 +123,17 @@ export class EventNode {
  * @param isControl {boolean} Флаг, указан ли этот обработчик на контроле.
  * @param fileName {string} Имя файла шаблона.
  * @param childrenStorage {string[]} Набор имен детей (свойство _children контрола).
+ * @param calculateMeta {boolean} Определяет нужно ли вычислить метаданные для событий
  */
 export function processEventAttribute(
-   value: IAttributeValue,
-   attributeName: string,
-   data: any,
-   isControl: boolean,
-   fileName: string,
-   childrenStorage: string[]
-): EventChain {
+    value: IAttributeValue,
+    attributeName: string,
+    data: any,
+    isControl: boolean,
+    fileName: string,
+    childrenStorage: string[],
+    calculateMeta: boolean
+): IEventProcess {
    const eventVisitor = new EventExpressionVisitor();
    const eventContext = {
       data,
@@ -140,18 +152,30 @@ export function processEventAttribute(
       safeCheckVariable: null
    };
    const artifact = eventVisitor.visit(value.data[0].name, eventContext);
-   const handler = FSC.wrapAroundExec('function() { return ' + artifact.fn + '; }');
    const eventArguments = FSC.wrapAroundExec(`[${artifact.args.join(',')}]`);
    const chain = EventChain.prepareEventChain();
-   chain.push(new EventNode({
-         args: eventArguments,
-         value: artifact.handlerName,
-         viewController: FSC.wrapAroundExec('viewController'),
-         handler,
+   const defaultContext = 'this';
+   const eventNode: IEventNodeCfg = {
+      value: artifact.handlerName,
+      viewController: FSC.wrapAroundExec('viewController')
+   };
+   if (Object.keys(artifact.args).length) {
+      eventNode.args = eventArguments;
+   }
+   if (artifact.context !== defaultContext) {
+      eventNode.context = FSC.wrapAroundExec('(function(){ return ' + artifact.context + '; })');
+      eventNode.handler = FSC.wrapAroundExec('function() { return ' + artifact.fn + '; }');
+   }
+   chain.push(new EventNode(eventNode));
+   if (calculateMeta) {
+      const eventMeta = {
          isControl,
-         context: FSC.wrapAroundExec('(function(){ return ' + artifact.context + '; })')
-      }));
-   return chain;
+         context: FSC.wrapAroundExec('(function(){ return ' + defaultContext + '; })'),
+         handler: FSC.wrapAroundExec('function(handlerName){ return thelpers.getter(this, [handlerName]); }')
+      };
+      return {chain, eventMeta};
+   }
+   return {chain};
 }
 
 /**

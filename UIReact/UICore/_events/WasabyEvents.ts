@@ -270,6 +270,12 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
         const domElement = element._container || element;
         const events = props.events;
         const eventSystem = WasabyEventsReact.getInstance();
+        const eventsMeta = {...events.meta};
+        delete events.meta;
+        Object.defineProperty(events, 'meta', {
+            configurable: true,
+            value: eventsMeta
+        });
         this.prepareEvents(events);
         if (!this.haveEvents(events)) {
             return;
@@ -291,27 +297,28 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
         Object.keys(events).forEach((eventName) => {
             const eventArr = events[eventName];
             eventArr.forEach((event: IWasabyEvent) => {
-                if (event.args) {
-                    event.fn = function (eventObj: SyntheticEvent): void {
-                        const context = event.context.apply(this.viewController);
-                        const handler = event.handler.apply(this.viewController);
-                        if (typeof handler === 'undefined') {
-                            throw new Error(`Отсутствует обработчик ${ event.value } события ${ eventObj.type } у контрола ${ event.viewController._moduleName }`);
-                        }
-                        context.eventTarget = eventObj.target;
-                        const res = handler.apply(context, arguments);
-                        if(res !== undefined) {
-                            eventObj.result = res;
-                        }
-                    };
-                } else {
+                if (event.bindValue) {
                     event.fn = function (eventObj: SyntheticEvent, value: unknown): void {
                         if (!event.handler(this.viewController, value)) {
                             event.handler(this.data, value);
                         }
                     };
+                } else {
+                    event.fn = function(eventObj: SyntheticEvent): void {
+                        const preparedContext = event.context || events.meta.context;
+                        const context = preparedContext.apply(this.viewController);
+                        const handler = event.handler ?
+                            event.handler.apply(this.viewController) :
+                            events.meta.handler.apply(this.viewController, [event.value]);
+                        if (typeof handler === 'undefined') {
+                            throw new Error(`Отсутствует обработчик ${event.value} события ${eventObj.type} у контрола ${event.viewController._moduleName}`);
+                        }
+                        const res = handler.apply(context, arguments);
+                        if (res !== undefined) {
+                            eventObj.result = res;
+                        }
+                    };
                 }
-
                 event.fn = event.fn.bind({
                     viewController: event.viewController,
                     data: event.data
@@ -441,6 +448,18 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
                 mergedEvents[key] = newEvents[key];
             }
         }
+
+        let eventsMeta;
+        if (currentEvents && currentEvents.meta && Object.keys(currentEvents.meta).length) {
+            eventsMeta = {...currentEvents.meta};
+        }
+        if (newEvents && newEvents.meta && Object.keys(newEvents.meta).length) {
+            eventsMeta = {...newEvents.meta};
+        }
+        Object.defineProperty(mergedEvents, 'meta', {
+            configurable: true,
+            value: eventsMeta
+        });
         return mergedEvents;
     }
 }

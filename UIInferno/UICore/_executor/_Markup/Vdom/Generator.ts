@@ -64,16 +64,16 @@ export class GeneratorVdom implements IGenerator {
       this.generatorBase = new Generator(config);
       this.canBeCompatible = false;
       this.generatorBase.bindGeneratorFunction(this.createEmptyText, this.createWsControl,
-         this.createTemplate, this.createController, this.resolver, this);
+          this.createTemplate, this.createController, this.resolver, this);
    }
 
    createControlNew(
-      type: string,
-      method: Function,
-      attributes: Record<string, unknown>,
-      events: Record<string, unknown>,
-      options: Record<string, unknown>,
-      config: IControlConfig
+       type: string,
+       method: Function,
+       attributes: Record<string, unknown>,
+       events: Record<string, unknown>,
+       options: Record<string, unknown>,
+       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
       return this.generatorBase.createControlNew.call(this, type, method, attributes, events, options, config);
    }
@@ -96,7 +96,7 @@ export class GeneratorVdom implements IGenerator {
                  contextObj?: GeneratorEmptyObject,
                  defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error {
       return this.generatorBase.createControl.call(this, type, name, data, attrs, templateCfg, context,
-         deps, includedTemplates, config, contextObj, defCollection);
+          deps, includedTemplates, config, contextObj, defCollection);
    }
 
    private prepareDataForCreate(tplOrigin: GeneratorTemplateOrigin,
@@ -146,15 +146,15 @@ export class GeneratorVdom implements IGenerator {
                    contextObj?: GeneratorEmptyObject,
                    defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error {
       return this.generatorBase.prepareResolver(name,
-                                             data,
-                                             attrs,
-                                             templateCfg,
-                                             context,
-                                             deps,
-                                             includedTemplates,
-                                             config,
-                                             contextObj,
-                                             defCollection);
+          data,
+          attrs,
+          templateCfg,
+          context,
+          deps,
+          includedTemplates,
+          config,
+          contextObj,
+          defCollection);
    }
 
    createText(text: string, key: string): VNode {
@@ -200,11 +200,11 @@ export class GeneratorVdom implements IGenerator {
    }
 
    createTemplate(
-      name: string,
-      scope: IControlProperties,
-      attributes: IGeneratorAttrs,
-      context: string,
-      _deps?: TDeps): string | ITemplateNode | TGeneratorNode {
+       name: string,
+       scope: IControlProperties,
+       attributes: IGeneratorAttrs,
+       context: string,
+       _deps?: TDeps): string | ITemplateNode | TGeneratorNode {
       let resultingFn;
       if (Common.isString(name)) {
          // @ts-ignore
@@ -274,14 +274,14 @@ export class GeneratorVdom implements IGenerator {
    }
 
    resolver(
-      tpl: GeneratorTemplateOrigin,
-      preparedScope: IControlProperties,
-      decorAttribs: IGeneratorAttrs,
-      context: string,
-      _deps?: TDeps,
-      includedTemplates?: TIncludedTemplate,
-      config?: IGeneratorConfig,
-      defCollection?: IGeneratorDefCollection
+       tpl: GeneratorTemplateOrigin,
+       preparedScope: IControlProperties,
+       decorAttribs: IGeneratorAttrs,
+       context: string,
+       _deps?: TDeps,
+       includedTemplates?: TIncludedTemplate,
+       config?: IGeneratorConfig,
+       defCollection?: IGeneratorDefCollection
    ): GeneratorStringArray | GeneratorFn {
       const data = this.prepareDataForCreate(tpl, preparedScope, decorAttribs, _deps, includedTemplates);
       const resolvedScope = data.controlProperties;
@@ -325,8 +325,8 @@ export class GeneratorVdom implements IGenerator {
             return this.createText('', decorAttribs.key);
          }
          return parent ?
-               fn.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
-            fn(resolvedScope, decorAttribs, context, true);
+             fn.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
+             fn(resolvedScope, decorAttribs, context, true);
       }
       if (fn && typeof fn.func === 'function') {
          if (Common.isAnonymousFn(fn.func)) {
@@ -334,8 +334,8 @@ export class GeneratorVdom implements IGenerator {
             return this.createText('', decorAttribs.key);
          }
          return parent ?
-               fn.func.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
-            fn.func(resolvedScope, decorAttribs, context, true);
+             fn.func.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
+             fn.func(resolvedScope, decorAttribs, context, true);
       }
       if (Common.isArray(fn)) {
          return this.resolveTemplateArray(parent, fn, resolvedScope, decorAttribs, context);
@@ -343,9 +343,9 @@ export class GeneratorVdom implements IGenerator {
       if (typeof tpl === 'undefined') {
          const typeTpl = typeof tpl;
          Logger.error(`${typeTpl} component error - Попытка использовать компонент/шаблон, ` +
-            `но вместо компонента в шаблоне был передан ${typeTpl}! ` +
-            'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
-            `По стеку будет понятно, в каком шаблоне и в какую опцию передается ${typeTpl}`, parent);
+             `но вместо компонента в шаблоне был передан ${typeTpl}! ` +
+             'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
+             `По стеку будет понятно, в каком шаблоне и в какую опцию передается ${typeTpl}`, parent);
          return this.createText('', decorAttribs.key);
       }
       if (fn === false) {
@@ -396,12 +396,12 @@ export class GeneratorVdom implements IGenerator {
    }
 
    createTag(
-      tagName: string,
-      attrs: IBaseAttrs,
-      children: GeneratorStringArray,
-      attrToDecorate: TAttributes,
-      defCollection: IGeneratorDefCollection,
-      control: GeneratorEmptyObject
+       tagName: string,
+       attrs: IBaseAttrs,
+       children: GeneratorStringArray,
+       attrToDecorate: TAttributes,
+       defCollection: IGeneratorDefCollection,
+       control: GeneratorEmptyObject
    ): string {
       if (tagName === invisibleNodeTagName) {
          return Vdom.htmlNode(tagName, emtpyProps, [], attrs.key);
@@ -414,7 +414,13 @@ export class GeneratorVdom implements IGenerator {
          attrs = {attributes: {}, events: {}, key: ''};
       }
 
-      if (attrs.events) {
+      if (attrs.events && Object.keys(attrs.events).length) {
+         const eventsMeta = {...attrs.events.meta};
+         delete attrs.events.meta;
+         Object.defineProperty(attrs.events, 'meta', {
+            configurable: true,
+            value: eventsMeta
+         });
          this.generatorBase.prepareEvents(attrs.events);
       }
 
