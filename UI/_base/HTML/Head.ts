@@ -41,7 +41,7 @@ class Head extends Control<IHeadOptions> {
         if (!this.isSSR) {
             return;
         }
-        return headDataStore.read('waitAppContent')()
+        return headDataStore.read('pageContentBuilded')()
             .then(({ js, css }) => {
                 return new Promise<void>((resolve) => {
                     aggregateCSS(options.theme, css.simpleCss, css.themedCss)
