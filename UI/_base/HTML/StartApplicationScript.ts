@@ -20,7 +20,7 @@ class StartApplicationScript extends Control {
       if (typeof window !== 'undefined') {
          return;
       }
-      const def = headDataStore.read('waitAppContent')();
+      const def = headDataStore.read('pageContentBuilded')();
       return new Promise<void>((resolve) => {
          def.then((res) => {
             this.additionalDeps = res.additionalDeps;

@@ -181,7 +181,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
         this.application = appData.application;
 
         this.linkResolver = new LinkResolver(
-            headDataStore.read('pageDeps').isDebug,
+            headDataStore.read('isDebug')(),
             this.buildnumber,
             this.wsRoot,
             this.appRoot,

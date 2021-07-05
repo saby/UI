@@ -1,11 +1,14 @@
 /// <amd-module name="UICommon/_deps/HeadData" />
 import { constants } from 'Env/Env';
+import { getDebugDeps, getDepsCollectorParams, getUnpackDepsFromCookie, isDebug } from 'UICommon/_deps/RecursiveWalker';
 import * as Library from 'WasabyLoader/Library';
-import { IDeps } from './DepsCollector';
-import PageDeps from './PageDeps';
+import { DepsCollector } from './DepsCollector';
 import * as AppEnv from 'Application/Env';
 import { IStore } from 'Application/Interface';
-import { IResources, ICollectedDeps, ISerializedData } from './Interface';
+import { IResources, ICollectedDeps, ISerializedData, ICollectedFiles, IDeps } from './Interface';
+
+const { links, nodes, bundles } = getDepsCollectorParams();
+const depsCollector = new DepsCollector(links, nodes, bundles);
 
 /**
  * Компонент-состояние head страницы
@@ -15,7 +18,6 @@ import { IResources, ICollectedDeps, ISerializedData } from './Interface';
 export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     // переедет в константы реквеста, изменяется в Controls/Application
     isNewEnvironment: boolean = false;
-    pageDeps: PageDeps;
     /** Дополнительные модули, для которых следует собрать зависимости */
     private initDeps: Record<string, boolean> = {};
     /** Дополнительные модули, которые следует грузить отложенно */
@@ -40,13 +42,24 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
         this.collectDeps = this.collectDeps.bind(this);
         this.collectDependencies = this.collectDependencies.bind(this);
         this.setUnpackDeps = this.setUnpackDeps.bind(this);
-        this.waitAppContent = this.waitAppContent.bind(this);
+        this.pageContentBuilded = this.pageContentBuilded.bind(this);
         this.pushDepComponent = this.pushDepComponent.bind(this);
         this.resetRenderDeferred = this.resetRenderDeferred.bind(this);
         this.setIncludedResources = this.setIncludedResources.bind(this);
 
-        this.pageDeps = new PageDeps();
         this.resetRenderDeferred();
+    }
+
+    isDebug(): boolean {
+        return isDebug();
+    }
+
+    private _collect(initDeps: IDeps = [], unpackRtPackDeps: IDeps): ICollectedFiles {
+        if (this.isDebug()) {
+            return getDebugDeps(initDeps);
+        }
+        const unpack = getUnpackDepsFromCookie().concat(unpackRtPackDeps);
+        return depsCollector.collectDependencies(initDeps, unpack);
     }
 
     /* toDO: StateRec.register */
@@ -98,7 +111,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     collectDependencies(): ICollectedDeps {
         const { additionalDeps, serialized: rsSerialized } = getSerializedData();
         const deps = Object.keys({ ...additionalDeps, ...this.initDeps });
-        const files = this.pageDeps.collect(deps, this.unpackDeps);
+        const files = this._collect(deps, this.unpackDeps);
         // некоторые разработчики завязываются на порядок css, поэтому сначала css переданные через links
         const simpleCss = this.includedResources.links.concat(files.css.simpleCss);
         // TODO нельзя слить ссылки и имена модулей т.к LinkResolver портит готовые ссылки
@@ -115,7 +128,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
         };
     }
 
-    waitAppContent(): Promise<ICollectedDeps> {
+    pageContentBuilded(): Promise<ICollectedDeps> {
         return this.renderPromise;
     }
 

@@ -30,7 +30,7 @@ class JsLinks extends Control<IJsLinksOptions> {
       if (typeof window !== 'undefined') {
          return;
       }
-      return headDataStore.read('waitAppContent')().then((res) => {
+      return headDataStore.read('pageContentBuilded')().then((res) => {
          const jslinksAPI = AppJSLinks.getInstance();
          aggregateJS(res);
          const data = jslinksAPI.getData();
