@@ -1,21 +1,20 @@
 import {constants} from 'Env/Env';
 import {Control} from 'UI/Base';
 import {Logger} from 'UICommon/Utils';
-import {IControlNode} from 'UICore/interfaces';
-import {IControl} from 'UICommon/interfaces';
+import {IControlObj} from './_base/Refs/Controls';
 
 export interface IWrapHTMLElement extends Node {
     jquery?: unknown;
     wsControl?: string;
-    controlNodes?: IControlNode[];
+    _$controls?: IControlObj[];
 }
 
-export function goUpByControlTree(target: IWrapHTMLElement, array?: IControlNode[]): IControlNode[] {
+export function goUpByControlTree(target: IWrapHTMLElement, array?: Control[]): Control[] {
     const controlTree = array || [];
     const element = target?.jquery ? target[0] : target;
     if (element) {
-        if (element.controlNodes && element.controlNodes.length) {
-            addControlsToFlatArray(element.controlNodes[0], controlTree);
+        if (element._$controls && element._$controls.length) {
+            addControlsToFlatArray(element._$controls[0], controlTree);
         } else if (constants.compat && element.wsControl) {
             // Если встретили старый компонент, нужно собирать его парентов по старому API
             addControlsToFlatArrayOld(element.wsControl, controlTree);
@@ -32,19 +31,19 @@ export function goUpByControlTree(target: IWrapHTMLElement, array?: IControlNode
  * @param control
  * @returns {*}
  */
-function getControlNode(control: Control): IControlNode {
+function getControlObj(control: Control): IControlObj {
     // @ts-ignore _container сейчас protected
-    const controlNodes = control._container.controlNodes;
-    for (const i in controlNodes) {
-        if (controlNodes.hasOwnProperty(i)) {
-            if (controlNodes[i].control === control) {
-                return controlNodes[i];
+    const controls = control._container._$controls;
+    for (const i in controls) {
+        if (controls.hasOwnProperty(i)) {
+            if (controls[i].control === control) {
+                return controls[i];
             }
         }
     }
 }
 
-function checkOpener(opener: IControl): void {
+function checkOpener(opener: Control): void {
     let error;
 
     if (opener) {
@@ -71,7 +70,7 @@ function checkOpener(opener: IControl): void {
  * @param control Control to get the focus parent for
  * @returns Focus parent of the given control
  */
-function getFocusParent(control: IControl): IControl | null {
+function getFocusParent(control: Control): Control | null {
     // ищем предка текущего контрола, сначала смотрим есть ли opener, если нет - берем parent
     // @ts-ignore _options, getOpener -> protected
     const result = control?._options?.opener || control?.getOpener?.() || control?._options?.parent
@@ -86,23 +85,23 @@ function getFocusParent(control: IControl): IControl | null {
 
 /**
  * Recursively collect array of openers or parents
- * @param controlNode
+ * @param controlObj
  * @param array
  */
-function addControlsToFlatArray(controlNode: IControlNode, array: any[]): void {
-    const control = controlNode.control;
-
+function addControlsToFlatArray(controlObj: IControlObj, array: Control[]): void {
+    const control = controlObj.control;
     if (array[array.length - 1] !== control) {
         array.push(control);
     }
 
     // В React ref строится снизу вверх, поэтому на момент построения мы не можем указать дочерним компонентам их
     // родителей, отсюда данный код по составлению массива родительских компонентов
-    let parent = controlNode?.element?.parentNode as IWrapHTMLElement;
+    // @ts-ignore _container protected
+    let parent = control._container?.parentNode as IWrapHTMLElement;
     let inProgress = true;
 
     while (parent && inProgress) {
-        if (parent.controlNodes) {
+        if (parent._$controls) {
             inProgress = false;
         } else {
             parent = parent?.parentNode;
@@ -111,14 +110,14 @@ function addControlsToFlatArray(controlNode: IControlNode, array: any[]): void {
 
     // Поднимаемся по controlNode'ам, потому что у control'а нет доступа к родительскому контролу
     // @ts-ignore _options -> protected
-    let next = control._options.opener || parent?.controlNodes[0] || controlNode.parent;
+    let next = control._options.opener || parent?._$controls[0];
     if (next && next._destroyed) {
         return;
     }
     if (next && !next.control) {
         if (next._container) {
             checkOpener(next);
-            next = getControlNode(next);
+            next = getControlObj(next);
         } else {
             // если компонент невизуальный, ничего не ищем
             next = null;
@@ -137,7 +136,7 @@ function addControlsToFlatArray(controlNode: IControlNode, array: any[]): void {
     }
 }
 
-function addControlsToFlatArrayOld(control: IControl, array: any[]): void {
+function addControlsToFlatArrayOld(control: Control, array: Control[]): void {
     if (array[array.length - 1] !== control) {
         array.push(control);
     }
@@ -152,9 +151,9 @@ function addControlsToFlatArrayOld(control: IControl, array: any[]): void {
         if (parent._template && parent._container) {
             // @ts-ignore _container -> protected
             const container = parent._container as IWrapHTMLElement;
-            const controlNode = container?.controlNodes[0];
-            if (controlNode) {
-                addControlsToFlatArray(container.controlNodes[0], array);
+            const controls = container?._$controls[0];
+            if (controls) {
+                addControlsToFlatArray(container._$controls[0], array);
                 // @ts-ignore hasCompatible -> protected
             } else if (typeof parent.hasCompatible === 'function' && parent.hasCompatible()) {
                 // On old pages it is possible that the vdom component has already been destroyed
