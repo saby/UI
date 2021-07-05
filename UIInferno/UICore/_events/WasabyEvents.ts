@@ -430,13 +430,21 @@ function isMyDOMEnvironment(env: IDOMEnvironment, event: Event): boolean {
     return false;
 }
 
-function checkSameEnvironment(env: IDOMEnvironment, element: IWasabyHTMLElement, isCompatibleTemplate: boolean): boolean {
+function checkSameEnvironment(env: IDOMEnvironment,
+                              element: IWasabyHTMLElement,
+                              isCompatibleTemplate: boolean): boolean {
     // todo костыльное решение, в случае CompatibleTemplate нужно всегда работать с верхним окружением (которое на html)
     // на ws3 страницах, переведенных на wasaby-окружение при быстром открытие/закртые окон не успевается полностью
     // задестроится окружение (очищается пурификатором через 10 сек), поэтому следует проверить env на destroy
     // @ts-ignore
     if (isCompatibleTemplate && !env._destroyed) {
-        const htmlEnv = env._rootDOMNode.tagName.toLowerCase() === 'html';
+        let htmlEnv = env._rootDOMNode.tagName.toLowerCase() === 'html';
+        // старт может быть от div'a
+        let startFromDiv = false;
+        if (!htmlEnv && env._rootDOMNode.controlNodes[0].control._moduleName === 'SbisEnvUI/Bootstrap') {
+            htmlEnv = env._rootDOMNode.controlNodes[0].control._container;
+            startFromDiv = true;
+        }
         if (element.controlNodes[0].environment === env && !htmlEnv) {
             // FIXME: 1. проблема в том, что обработчики событий могут быть только на внутреннем окружении,
             // в таком случае мы должны вызвать его с внутреннего окружения.
@@ -464,7 +472,7 @@ function checkSameEnvironment(env: IDOMEnvironment, element: IWasabyHTMLElement,
                 // проверяем на наличие controlNodes на dom-элементе
                 if (_element.controlNodes && _element.controlNodes[0]) {
                     // нашли самое верхнее окружение
-                    if (_element.controlNodes[0].environment._rootDOMNode.tagName.toLowerCase() === 'html') {
+                    if (_element.controlNodes[0].environment._rootDOMNode.tagName.toLowerCase() === 'html' || startFromDiv) {
                         // проверяем, что такой обработчик есть
                         if (typeof _element.controlNodes[0].environment.showCapturedEvents()[event.type] !== 'undefined') {
                             // обработчик есть на двух окружениях. Следует проанализировать обработчики на обоих окружениях
