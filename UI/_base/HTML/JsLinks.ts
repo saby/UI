@@ -1,14 +1,13 @@
 /// <amd-module name="UI/_base/HTML/JsLinks" />
 
 import { cookie } from 'Env/Env';
-import { ICollectedDeps } from '../../../UICommon/_deps/Interface';
 import { Control } from 'UICore/Base';
 import { TemplateFunction } from 'UICommon/Base';
 
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/JsLinks');
-import { headDataStore } from 'UICommon/Deps';
+import { headDataStore, ICollectedDeps } from 'UICommon/Deps';
 import { IControlOptions } from 'UI/Base';
 import { JSLinks as AppJSLinks } from 'Application/Page';
 import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
