@@ -57,12 +57,14 @@ export default class WasabyEventsInferno extends WasabyEvents implements IWasaby
     captureEventHandler<TNativeEvent extends Event>(
         event: TNativeEvent
     ): void {
-        const syntheticEvent = new SyntheticEvent(event);
-        if (detection.isMobileIOS && detection.safari && event.type === 'click' && this.touchendTarget) {
-            syntheticEvent.target = this.touchendTarget;
-            this.touchendTarget = null;
+        if (this.needPropagateEvent(this._environment, event)) {
+            const syntheticEvent = new SyntheticEvent(event);
+            if (detection.isMobileIOS && detection.safari && event.type === 'click' && this.touchendTarget) {
+                syntheticEvent.target = this.touchendTarget;
+                this.touchendTarget = null;
+            }
+            this.vdomEventBubbling(syntheticEvent, null, undefined, [], true);
         }
-        this.vdomEventBubbling(syntheticEvent, null, undefined, [], true);
     }
 
     protected vdomEventBubbling<T>(
@@ -212,6 +214,43 @@ export default class WasabyEventsInferno extends WasabyEvents implements IWasaby
                 eventPropertiesStartArray = undefined;
             }
         }
+    }
+
+    private needPropagateEvent(environment: IDOMEnvironment, event: IFixedEvent): boolean {
+        if (!environment._rootDOMNode) {
+            return false;
+        } else if (
+            !(
+                (event.currentTarget === window && event.type === 'scroll') ||
+                (event.currentTarget === window && event.type === 'resize')
+            ) && event.eventPhase !== 1
+        ) {
+            // У событий scroll и resize нет capture-фазы,
+            // поэтому учитываем их в условии проверки на фазу распространения события
+            return false;
+        } else if (
+            detection.isIE &&
+            event.type === 'change' &&
+            !event._dispatchedForIE &&
+            this.needStopChangeEventForEdge(event.target)
+        ) {
+            // Из-за особенностей работы vdom в edge событие change у некоторых типов input'ов стреляет не всегда.
+            // Поэтому для этих типов мы будем стрелять событием сами.
+            // И чтобы обработчики событий не были вызваны два раза, стопаем нативное событие.
+            return false;
+        } else if (detection.isMobileIOS &&
+            FastTouchEndController.isFastEventFired(event.type) &&
+            FastTouchEndController.wasEventEmulated() &&
+            event.isTrusted) {
+            // на ios 14.4 после событий тача стреляет дополнительный mousedown с isTrusted = true
+            // это связанно с тем, что мы пытаемся игнорировать нативную задержку в 300 мс
+            // поэтому для событий которые мы выстрелим руками повторный вызов не нужен
+            return false;
+        } else if (!isMyDOMEnvironment(environment, event)) {
+            return false;
+        }
+
+        return true;
     }
 
     callEventsToDOM(): void {
@@ -391,13 +430,21 @@ function isMyDOMEnvironment(env: IDOMEnvironment, event: Event): boolean {
     return false;
 }
 
-function checkSameEnvironment(env: IDOMEnvironment, element: IWasabyHTMLElement, isCompatibleTemplate: boolean): boolean {
+function checkSameEnvironment(env: IDOMEnvironment,
+                              element: IWasabyHTMLElement,
+                              isCompatibleTemplate: boolean): boolean {
     // todo костыльное решение, в случае CompatibleTemplate нужно всегда работать с верхним окружением (которое на html)
     // на ws3 страницах, переведенных на wasaby-окружение при быстром открытие/закртые окон не успевается полностью
     // задестроится окружение (очищается пурификатором через 10 сек), поэтому следует проверить env на destroy
     // @ts-ignore
     if (isCompatibleTemplate && !env._destroyed) {
-        const htmlEnv = env._rootDOMNode.tagName.toLowerCase() === 'html';
+        let htmlEnv = env._rootDOMNode.tagName.toLowerCase() === 'html';
+        // старт может быть от div'a
+        let startFromDiv = false;
+        if (!htmlEnv && env._rootDOMNode.controlNodes[0].control._moduleName === 'SbisEnvUI/Bootstrap') {
+            htmlEnv = env._rootDOMNode.controlNodes[0].control._container;
+            startFromDiv = true;
+        }
         if (element.controlNodes[0].environment === env && !htmlEnv) {
             // FIXME: 1. проблема в том, что обработчики событий могут быть только на внутреннем окружении,
             // в таком случае мы должны вызвать его с внутреннего окружения.
@@ -425,7 +472,7 @@ function checkSameEnvironment(env: IDOMEnvironment, element: IWasabyHTMLElement,
                 // проверяем на наличие controlNodes на dom-элементе
                 if (_element.controlNodes && _element.controlNodes[0]) {
                     // нашли самое верхнее окружение
-                    if (_element.controlNodes[0].environment._rootDOMNode.tagName.toLowerCase() === 'html') {
+                    if (_element.controlNodes[0].environment._rootDOMNode.tagName.toLowerCase() === 'html' || startFromDiv) {
                         // проверяем, что такой обработчик есть
                         if (typeof _element.controlNodes[0].environment.showCapturedEvents()[event.type] !== 'undefined') {
                             // обработчик есть на двух окружениях. Следует проанализировать обработчики на обоих окружениях
