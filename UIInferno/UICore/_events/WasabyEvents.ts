@@ -57,14 +57,12 @@ export default class WasabyEventsInferno extends WasabyEvents implements IWasaby
     captureEventHandler<TNativeEvent extends Event>(
         event: TNativeEvent
     ): void {
-        if (this.needPropagateEvent(this._environment, event)) {
-            const syntheticEvent = new SyntheticEvent(event);
-            if (detection.isMobileIOS && detection.safari && event.type === 'click' && this.touchendTarget) {
-                syntheticEvent.target = this.touchendTarget;
-                this.touchendTarget = null;
-            }
-            this.vdomEventBubbling(syntheticEvent, null, undefined, [], true);
+        const syntheticEvent = new SyntheticEvent(event);
+        if (detection.isMobileIOS && detection.safari && event.type === 'click' && this.touchendTarget) {
+            syntheticEvent.target = this.touchendTarget;
+            this.touchendTarget = null;
         }
+        this.vdomEventBubbling(syntheticEvent, null, undefined, [], true);
     }
 
     protected vdomEventBubbling<T>(
@@ -214,43 +212,6 @@ export default class WasabyEventsInferno extends WasabyEvents implements IWasaby
                 eventPropertiesStartArray = undefined;
             }
         }
-    }
-
-    private needPropagateEvent(environment: IDOMEnvironment, event: IFixedEvent): boolean {
-        if (!environment._rootDOMNode) {
-            return false;
-        } else if (
-            !(
-                (event.currentTarget === window && event.type === 'scroll') ||
-                (event.currentTarget === window && event.type === 'resize')
-            ) && event.eventPhase !== 1
-        ) {
-            // У событий scroll и resize нет capture-фазы,
-            // поэтому учитываем их в условии проверки на фазу распространения события
-            return false;
-        } else if (
-            detection.isIE &&
-            event.type === 'change' &&
-            !event._dispatchedForIE &&
-            this.needStopChangeEventForEdge(event.target)
-        ) {
-            // Из-за особенностей работы vdom в edge событие change у некоторых типов input'ов стреляет не всегда.
-            // Поэтому для этих типов мы будем стрелять событием сами.
-            // И чтобы обработчики событий не были вызваны два раза, стопаем нативное событие.
-            return false;
-        } else if (detection.isMobileIOS &&
-            FastTouchEndController.isFastEventFired(event.type) &&
-            FastTouchEndController.wasEventEmulated() &&
-            event.isTrusted) {
-            // на ios 14.4 после событий тача стреляет дополнительный mousedown с isTrusted = true
-            // это связанно с тем, что мы пытаемся игнорировать нативную задержку в 300 мс
-            // поэтому для событий которые мы выстрелим руками повторный вызов не нужен
-            return false;
-        } else if (!isMyDOMEnvironment(environment, event)) {
-            return false;
-        }
-
-        return true;
     }
 
     callEventsToDOM(): void {
