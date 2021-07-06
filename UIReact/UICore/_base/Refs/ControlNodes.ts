@@ -1,7 +1,7 @@
-import {Control} from 'UI/Base';
+import { default as Control } from '../Control';
 import {IDOMEnvironment} from 'UICore/interfaces';
 import {Logger} from 'UICommon/Utils';
-import {TControlNode} from "./TControlNode";
+import {TControlNode} from './TControlNode';
 
 export interface IControlNode {
     control: Control;

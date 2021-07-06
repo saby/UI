@@ -1,3 +1,3 @@
-import {Control} from "UICore/Base";
+import { default as Control } from '../Control';
 
 export type TControlNode = HTMLElement | Control;

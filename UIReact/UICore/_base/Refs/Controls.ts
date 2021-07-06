@@ -1,5 +1,5 @@
-import {Control} from 'UI/Base';
-import {TControlNode} from "./TControlNode";
+import { default as Control } from '../Control';
+import {TControlNode} from './TControlNode';
 
 export interface IControlObj {
    control: Control;

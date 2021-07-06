@@ -1,5 +1,5 @@
-import {Control} from "../Control";
-import {TControlNode} from "./TControlNode";
+import { default as Control } from '../Control';
+import {TControlNode} from './TControlNode';
 
 export function prepareContainer(node: TControlNode, control: Control) {
    if (node instanceof Control) {

@@ -1,6 +1,6 @@
 import { Responsibility, IResponsibilityHandler } from 'UICore/Ref';
 import {prepareContainer} from './ParentHoc';
-import { Control } from 'UI/Base';
+import { default as Control } from '../Control';
 
 export class CreateHocRef extends Responsibility {
    private readonly _control: Control;

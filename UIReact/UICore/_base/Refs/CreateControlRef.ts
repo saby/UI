@@ -1,6 +1,6 @@
 import { Responsibility, IResponsibilityHandler } from 'UICore/Ref';
 import {prepareControls} from './Controls';
-import { Control } from 'UI/Base';
+import { default as Control } from '../Control';
 
 export class CreateControlRef extends Responsibility {
    private readonly _control: Control;
