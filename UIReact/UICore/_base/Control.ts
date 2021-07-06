@@ -621,17 +621,13 @@ export default class Control<TOptions extends IControlOptions = {},
             while (realFiberNode instanceof Array) {
                 realFiberNode = realFiberNode[0];
             }
-            if (realFiberNode.ref) {
-                const chainOfRef = new ChainOfRef();
-                chainOfRef.add(new CreateControlNodeRef(this, Control)).add(new CreateOriginRef(realFiberNode.ref));
-                result = {
-                    ...realFiberNode, ref: (node) => {
-                        return chainOfRef.execute()(node);
-                    }
-                };
-            } else {
-                result = realFiberNode;
-            }
+            const chainOfRef = new ChainOfRef();
+            chainOfRef.add(new CreateControlNodeRef(this, Control)).add(new CreateOriginRef(realFiberNode.ref));
+            result = {
+                ...realFiberNode, ref: (node) => {
+                    return chainOfRef.execute()(node);
+                }
+            };
         } catch (e) {
             logError(e);
             result = null;
