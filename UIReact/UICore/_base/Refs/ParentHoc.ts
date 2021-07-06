@@ -1,4 +1,4 @@
-import {Control} from "UICore/Base";
+import {Control} from "../Control";
 import {TControlNode} from "./TControlNode";
 
 export function prepareContainer(node: TControlNode, control: Control) {
