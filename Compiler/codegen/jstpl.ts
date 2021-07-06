@@ -226,10 +226,45 @@ export const INCLUDED_TEMPLATE = `{
 `;
 
 /**
+ * Узел контентной опции (wml)
+ */
+export const INCLUDED_TEMPLATE_REACT = `
+    (function () {
+      var scope = Object.create(data);
+      scope.viewController = viewController || null;
+      var bindFn = function(props) {
+        return /*#TEMPLATE#*/.call(scope, props, attr, context, isVdom, sets, forceCompatible, generatorConfig);
+      };
+
+      /*#DELETE IT START#*/
+      bindFn.toJSON = function () {
+         return "TEMPLATEFUNCTOJSON=" + /*#TEMPLATE_JSON#*/.toString();
+      };
+      /*#DELETE IT END#*/
+      bindFn.isWasabyTemplate = /*#IS_WASABY_TEMPLATE#*/;
+
+      return bindFn;
+   })()
+`;
+
+/**
  * Output template code fragment.
  * @deprecated
  */
 export const OBJECT_TEMPLATE = `(new(function () {
+   var scope = Object.create(data);
+   scope.viewController = viewController || null;
+   var func = ( /*#TEMPLATE#*/ );
+   this.func = thelpers.makeFunctionSerializable(func, scope);
+   /*#INTERNAL#*/;
+   this.func.isWasabyTemplate = /*#IS_WASABY_TEMPLATE#*/;
+})).func
+`;
+
+/**
+ * Узел контентной опции (tmpl)
+ */
+export const OBJECT_TEMPLATE_REACT = `(new(function () {
    var scope = Object.create(data);
    scope.viewController = viewController || null;
    var func = ( /*#TEMPLATE#*/ );

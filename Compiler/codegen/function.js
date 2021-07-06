@@ -235,6 +235,7 @@ define('Compiler/codegen/function', [
             this.fileName = handlers.fileName;
             this.config = handlers.config;
             this.isWasabyTemplate = handlers.isWasabyTemplate;
+            this.useReact = handlers.useReact;
          }
          var str = '' + this._process(ast, null, decor);
          if (str) {
