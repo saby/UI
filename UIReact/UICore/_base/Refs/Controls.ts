@@ -1,8 +1,8 @@
-import { default as Control } from '../Control';
 import {TControlNode} from './TControlNode';
+import {IControl} from 'UICommon/interfaces';
 
 export interface IControlObj {
-   control: Control;
+   control: IControl;
    id: string;
 }
 
@@ -34,13 +34,13 @@ function addControlObj(controls: IControlObj[], controlObj: IControlObj): void {
       sortedAddControlObj(controls, controlObj);
    }
 }
-function findControlObj(controls: IControlObj[], control: Control): IControlObj {
+function findControlObj(controls: IControlObj[], control: IControl): IControlObj {
    const foundControlObj = controls.find((controlObj) => {
       return controlObj.control === control;
    });
    return foundControlObj;
 }
-function removeControlObj(controls: IControlObj[], controlToRemove: Control): void {
+function removeControlObj(controls: IControlObj[], controlToRemove: IControl): void {
    if (!controls) {
       return;
    }
@@ -49,7 +49,7 @@ function removeControlObj(controls: IControlObj[], controlToRemove: Control): vo
       controls.splice(controls.indexOf(foundControl), 1);
    }
 }
-export function prepareControls(node: TControlNode, control: Control): void {
+export function prepareControls(node: TControlNode, control: IControl): void {
    const container = node?._container || node;
    if (!container) {
       return;

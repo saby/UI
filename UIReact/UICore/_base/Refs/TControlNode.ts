@@ -1,3 +1,3 @@
-import { default as Control } from '../Control';
+import {IControl} from 'UICommon/interfaces';
 
-export type TControlNode = HTMLElement | Control;
+export type TControlNode = HTMLElement | IControl;

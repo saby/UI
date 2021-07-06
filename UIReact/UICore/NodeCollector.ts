@@ -2,6 +2,7 @@ import {constants} from 'Env/Env';
 import {Control} from 'UI/Base';
 import {Logger} from 'UICommon/Utils';
 import {IControlObj} from './_base/Refs/Controls';
+import {IControl} from 'UICommon/interfaces';
 
 export interface IWrapHTMLElement extends Node {
     jquery?: unknown;

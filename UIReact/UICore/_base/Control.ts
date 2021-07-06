@@ -31,9 +31,9 @@ import { ChainOfRef, CreateOriginRef } from 'UICore/Ref';
 import { CreateControlNodeRef } from './Refs/CreateControlNodeRef';
 import {goUpByControlTree} from 'UICore/NodeCollector';
 import {constants} from 'Env/Env';
-import { ErrorViewer } from 'UICore/_base/ErrorViewer';
-import {CreateControlRef} from "./Refs/CreateControlRef";
-import {CreateHocRef} from "./Refs/CreateHocRef";
+import { ErrorViewer } from './ErrorViewer';
+import {CreateControlRef} from './Refs/CreateControlRef';
+import {CreateHocRef} from './Refs/CreateHocRef';
 
 export type IControlConstructor<P = IControlOptions> = React.ComponentType<P>;
 

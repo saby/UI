@@ -1,10 +1,10 @@
-import { default as Control } from '../Control';
 import {IDOMEnvironment} from 'UICore/interfaces';
+import {IControl} from 'UICommon/interfaces';
 import {Logger} from 'UICommon/Utils';
 import {TControlNode} from './TControlNode';
 
 export interface IControlNode {
-    control: Control;
+    control: IControl;
     element: HTMLElement;
     parent: HTMLElement;
     environment: IDOMEnvironment;
@@ -40,7 +40,7 @@ function addControlNode(controlNodes: IControlNode[], controlNode: IControlNode)
     }
 }
 
-function removeControlNode(controlNodes: IControlNode[], controlToRemove: Control): void {
+function removeControlNode(controlNodes: IControlNode[], controlToRemove: IControl): void {
     if (!controlNodes) {
         return;
     }
@@ -52,7 +52,7 @@ function removeControlNode(controlNodes: IControlNode[], controlToRemove: Contro
     }
 }
 
-export function prepareControlNodes(node: TControlNode, control: Control): void {
+export function prepareControlNodes(node: TControlNode, control: IControl): void {
     const container = node?._container || node;
     if (!container) {
         return;
