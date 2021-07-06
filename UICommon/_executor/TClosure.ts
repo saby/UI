@@ -244,35 +244,6 @@ var
 
       return array;
    },
-   createDataArrayReact = function createDataArrayReact(array, templateName, isWasabyTemplate) {
-      // TODO: Реализовать для React
-      Object.defineProperty(array, 'isDataArray', {
-         value: true,
-         configurable: true,
-         enumerable: false,
-         writable: true
-      });
-      Object.defineProperty(array, 'isWasabyTemplate', {
-         value: !!isWasabyTemplate,
-         configurable: true,
-         enumerable: false,
-         writable: true
-      });
-      Object.defineProperty(array, 'toString', {
-         value: function() {
-            Logger.templateError(
-                "Использование контентной опции компонента или шаблона в качестве строки. " +
-                "Необходимо использовать контентные опции с помощью конструкции ws:partial или " +
-                "обратитесь в отдел Инфраструктура представления", templateName);
-            return this.join("");
-         },
-         configurable: true,
-         enumerable: false,
-         writable: true
-      });
-
-      return array;
-   },
    // Существует пока есть второй прогон dot на препроцессоре
    sanitizeContent = function sanitizeContent(content) {
       // @ts-ignore
@@ -346,7 +317,6 @@ export {
    presetScope,
    uniteScope,
    createDataArray,
-   createDataArrayReact,
    filterOptions,
    calcParent,
    wrapUndef,

@@ -105,18 +105,15 @@ define('Compiler/modules/data/object', [
          injected = injected.children;
       }
 
-      // FIXME: простое (без переписывания кодогенерации) исправление конетнтной опции с условием в корне
-      var isProcessingContentOptionsRoots = (realInjected.parent && (realInjected.parent.constructor.name === 'ContentOptionNode'));
-
       // Проверка на контентную опцию, причем смотрим на директивы.
       // Содержимое контентной опции обрабатывается в контексте верстки, а не объекта.
       // !!! false для контентной опции с if/for в корне
       stepInto = !(Array.isArray(injected) && injected.filter(function(entity) {
          return variativeTemplate(entity && entity.name);
-      }).length) || isProcessingContentOptionsRoots;
+      }).length);
 
       for (i = 0; i < injected.length; i++) {
-         nameExists = isProcessingContentOptionsRoots ? undefined : tagUtils.splitWs(injected[i].name);
+         nameExists = tagUtils.splitWs(injected[i].name);
          if (injected[i].children && stepInto) {
             typeFunction = types[nameExists];
             useful = tagUtils.isEntityUsefulOrHTML(nameExists, this._modules);
@@ -178,8 +175,7 @@ define('Compiler/modules/data/object', [
                      children: injected[i].children,
                      isControl: realInjected.isControl,
                      rootConfig: realInjected.rootConfig || curatedScope,
-                     rPropName: nameExists,
-                     parent: injected[i]
+                     rPropName: nameExists
                   },
                   types,
                   scopeData,

@@ -227,13 +227,14 @@ export const INCLUDED_TEMPLATE = `{
 
 /**
  * Узел контентной опции (wml)
- * TODO: Реализовать для React
  */
 export const INCLUDED_TEMPLATE_REACT = `
-    func: (function () {
+    (function () {
       var scope = Object.create(data);
       scope.viewController = viewController || null;
-      var bindFn = /*#TEMPLATE#*/.bind(scope);
+      var bindFn = function(props) {
+        return /*#TEMPLATE#*/.call(scope, props, attr, context, isVdom, sets, forceCompatible, generatorConfig);
+      };
 
       /*#DELETE IT START#*/
       bindFn.toJSON = function () {
@@ -243,9 +244,7 @@ export const INCLUDED_TEMPLATE_REACT = `
       bindFn.isWasabyTemplate = /*#IS_WASABY_TEMPLATE#*/;
 
       return bindFn;
-   })(),
-   internal: /*#INTERNAL#*/,
-   isWasabyTemplate: /*#IS_WASABY_TEMPLATE#*/
+   })()
 `;
 
 /**
@@ -264,7 +263,6 @@ export const OBJECT_TEMPLATE = `(new(function () {
 
 /**
  * Узел контентной опции (tmpl)
- * TODO: Реализовать для React
  */
 export const OBJECT_TEMPLATE_REACT = `(new(function () {
    var scope = Object.create(data);

@@ -315,12 +315,10 @@ define('Compiler/codegen/templates', [
    function generateIncludedTemplate(template, internal, postfix, isWasabyTemplate, useReact) {
       var postfixCall = postfix || '';
       if (useReact) {
-         // TODO: Implement
          return includedTemplateReact
             .replace('/*#TEMPLATE#*/', generateReturnValueFunction(template))
             .replace('/*#TEMPLATE_JSON#*/', generateReturnValueFunction(template))
-            .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, isWasabyTemplate)
-            .replace('/*#INTERNAL#*/', generateReturnValueFunction(internal)) + postfixCall;
+            .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, isWasabyTemplate);
       }
       return includedTemplate
          .replace('/*#TEMPLATE#*/', generateReturnValueFunction(template))

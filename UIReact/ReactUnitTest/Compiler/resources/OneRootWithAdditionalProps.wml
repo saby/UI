@@ -1,0 +1,3 @@
+<ReactUnitTest.Compiler.RenderPropWithAdditionalProps>
+    <div>123{{ content.testProp }}</div>
+</ReactUnitTest.Compiler.RenderPropWithAdditionalProps>
