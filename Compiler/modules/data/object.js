@@ -317,13 +317,14 @@ define('Compiler/modules/data/object', [
                   fAsString,
                   dirtyCh ? ('isVdom?' + dirtyCh + ':{}') : '{}',
                   undefined,
-                  this.isWasabyTemplate
+                  this.isWasabyTemplate,
+                  this.useReact
                )
             );
          } else {
             templateObject.html = FSC.wrapAroundObject(
                templates.generateObjectTemplate(
-                  fAsString, 'this.func.internal = ' + dirtyCh, undefined, this.isWasabyTemplate
+                  fAsString, 'this.func.internal = ' + dirtyCh, undefined, this.isWasabyTemplate, this.useReact
                )
             );
          }

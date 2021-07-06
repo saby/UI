@@ -3,7 +3,7 @@ import { assert } from 'chai';
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import { JSDOM } from 'jsdom';
-import { ChainOfRef } from 'UICore/Ref';
+import { ChainOfRef, CreateOriginRef } from 'UICore/Ref';
 import { CustomRef } from './Refs/CustomRef';
 
 const isBrowser = typeof window !== 'undefined';
@@ -32,6 +32,26 @@ describeIf(isBrowser)('Тестирование цепочки ответств�
             const chainOfRef = new ChainOfRef();
             chainOfRef.add(customRef);
             assert.deepEqual(chainOfRef.handlers, [customRef]);
+        });
+
+        it('Добавление пустого рефа в цепочку', () => {
+            const nullRef = new CreateOriginRef(null);
+            const undefinedRef = new CreateOriginRef(undefined);
+            const chainOfRef = new ChainOfRef();
+            chainOfRef.add(nullRef);
+            chainOfRef.add(undefinedRef);
+            assert.deepEqual(chainOfRef.handlers, [nullRef, undefinedRef]);
+        });
+
+        it('Выполнение цепочки пустых рефов', () => {
+            const nullRef = new CreateOriginRef(null);
+            const undefinedRef = new CreateOriginRef(undefined);
+            const chainOfRef = new ChainOfRef();
+            chainOfRef.add(nullRef);
+            chainOfRef.add(undefinedRef);
+           assert.doesNotThrow(() => {
+               chainOfRef.execute()(container);
+           });
         });
 
         it('Выполнение цепочки', () => {

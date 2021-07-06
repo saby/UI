@@ -1,0 +1,8 @@
+<ReactUnitTest.Compiler.RenderPropWithoutAdditionalProps>
+    <ws:if data="{{ _options.renderContent }}">
+        <div>123</div>
+    </ws:if>
+    <ws:else>
+        <div>456</div>
+    </ws:else>
+</ReactUnitTest.Compiler.RenderPropWithoutAdditionalProps>

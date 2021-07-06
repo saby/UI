@@ -7,6 +7,11 @@ import { Config } from '../Config';
 import { ModulePath } from './ModulePath';
 
 /**
+ * Разрешает использование флага useReact, принимаемый в качестве опций компилятора.
+ */
+const ALLOW_USE_REACT_FLAG = false;
+
+/**
  * Represents interface for traverse config.
  */
 interface ITraverseOptions {
@@ -93,6 +98,11 @@ export interface IOptions {
     * The template has references to inline-templates that defined in other file.
     */
    hasExternalInlineTemplates: boolean;
+
+   /**
+    * Use react features in template compiling.
+    */
+   useReact: boolean;
 }
 
 /**
@@ -124,6 +134,11 @@ export class Options implements IOptions {
     * The template has references to inline-templates that defined in other file.
     */
    readonly hasExternalInlineTemplates: boolean;
+
+   /**
+    * Use react features in template compiling.
+    */
+   readonly useReact: boolean;
 
    /**
     * Translatable control options dictionary.
@@ -160,5 +175,6 @@ export class Options implements IOptions {
       this.config = options.config || Config as ITraverseOptions;
       this.isWasabyTemplate = this.modulePath.extension === 'wml';
       this.generateCodeForTranslations = options.generateCodeForTranslations;
+      this.useReact = ALLOW_USE_REACT_FLAG && !!options.useReact;
    }
 }

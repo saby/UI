@@ -55,7 +55,15 @@ define('Compiler/modules/data/utils/dataTypesCreator', [
     * @param str
     * @returns {*}
     */
-   function createArrayDataRepresentation(str, isWasabyTemplate) {
+   function createArrayDataRepresentation(str, isWasabyTemplate, useReact) {
+      if (useReact) {
+         return FSC.wrapAroundExec(
+            TClosure.genCreateDataArrayReact(
+               FSC.prepareStringForExec(JSON.stringify(str)),
+               isWasabyTemplate
+            )
+         );
+      }
       return FSC.wrapAroundExec(
          TClosure.genCreateDataArray(
             FSC.prepareStringForExec(JSON.stringify(str)),
@@ -138,7 +146,7 @@ define('Compiler/modules/data/utils/dataTypesCreator', [
             return createNumberDataRepresentation(res, children);
          }
          if (dataType === 'Array') {
-            return createArrayDataRepresentation(res, this.isWasabyTemplate);
+            return createArrayDataRepresentation(res, this.isWasabyTemplate, this.useReact);
          }
          return createTypeDataRepresentation(dataType, res);
       }
