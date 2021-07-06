@@ -1,6 +1,6 @@
 {
    "name": "saby-ui",
-   "version": "21.4000.0",
+   "version": "21.5000.0",
    "repository": {
       "type": "git",
       "url": "git@platform-git.sbis.ru:saby/UI.git"
@@ -57,7 +57,7 @@
       "react-test-renderer": "17.0.1",
       "requirejs": "2.1.18",
       "serve-static": "1.11.x",
-      "wasaby-cli": "git+https://platform-git.sbis.ru/saby/wasaby-cli.git#rc-21.4000"
+      "wasaby-cli": "git+https://platform-git.sbis.ru/saby/wasaby-cli.git#rc-21.5000"
    },
    "madge": {
       "baseDir": ".",
