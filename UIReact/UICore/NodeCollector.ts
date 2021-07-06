@@ -114,7 +114,7 @@ function addControlsToFlatArray(controlObj: IControlObj, array: Control[]): void
 
     // Поднимаемся по controlNode'ам, потому что у control'а нет доступа к родительскому контролу
     // @ts-ignore _options -> protected
-    let next = control._options.opener || parent?._$controls[0];
+    let next = control._options.opener || parent?._$controls[0] || controlObj.parent;
     if (next && next._destroyed) {
         return;
     }
