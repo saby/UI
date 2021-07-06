@@ -25,6 +25,9 @@ export function goUpByControlTree(target: IWrapHTMLElement, array?: Control[]): 
     }
     return controlTree;
 }
+export function getClosestControl(element: HTMLElement): IControl {
+    return goUpByControlTree(element)[0];
+}
 
 /**
  * Вычисляет controlNode для control
