@@ -107,7 +107,6 @@ describe('Тесты работы ключей в шаблонизаторе', (
         await tickAsync(0);
         await tickAsync(0);
 
-        // если
         assert.equal(inst._children.item_5.updated, 3);
     });
 });
