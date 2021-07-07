@@ -14,8 +14,6 @@ import {Config as config} from 'UICommon/BuilderConfig';
 // @ts-ignore
 import { ObjectUtils } from 'UICommon/Utils';
 import { object } from 'Types/util';
-// @ts-ignore
-import { constants } from 'Env/Env';
 import * as Scope from './_Expressions/Scope';
 import { Common, ConfigResolver } from './Utils';
 
