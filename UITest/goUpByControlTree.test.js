@@ -14,7 +14,7 @@ define([
       },
       'New controls only (1 node)': {
          target: {
-            controlNodes: [{
+            _$controls: [{
                control: {
                   _options: { }
                }
@@ -22,12 +22,12 @@ define([
          },
          ckeckFn: function(target, result) {
             assert.isTrue(result.length === 1, 'Check controls count');
-            assert.isTrue(result[0] === target.controlNodes[0].control, 'Check first control');
+            assert.isTrue(result[0] === target._$controls[0].control, 'Check first control');
          }
       },
       'New controls only (2 nodes)': {
          target: {
-            controlNodes: [{
+            _$controls: [{
                control: {
                   _options: {
                      _parent: {
@@ -44,13 +44,13 @@ define([
          },
          ckeckFn: function(target, result) {
             assert.isTrue(result.length === 2, 'Check controls count');
-            assert.isTrue(result[0] === target.controlNodes[0].control, 'Check first control');
-            assert.isTrue(result[1] === target.controlNodes[0].parent.control, 'Check second control');
+            assert.isTrue(result[0] === target._$controls[0].control, 'Check first control');
+            assert.isTrue(result[1] === target._$controls[0].parent.control, 'Check second control');
          }
       },
       'New controls only 2 (2 nodes)': {
          target: {
-            controlNodes: [{
+            _$controls: [{
                control: {
                   _options: {
                      opener: {
@@ -62,21 +62,21 @@ define([
             }]
          },
          beforeTest: function(target) {
-            target.controlNodes[0].control._options.opener._container.controlNodes = [
+            target._$controls[0].control._options.opener._container._$controls = [
                {
-                  control: target.controlNodes[0].control._options.opener
+                  control: target._$controls[0].control._options.opener
                }
             ];
          },
          ckeckFn: function(target, result) {
             assert.isTrue(result.length === 2, 'Check controls count');
-            assert.isTrue(result[0] === target.controlNodes[0].control, 'Check first control');
-            assert.isTrue(result[1] === target.controlNodes[0].control._options.opener, 'Check second control');
+            assert.isTrue(result[0] === target._$controls[0].control, 'Check first control');
+            assert.isTrue(result[1] === target._$controls[0].control._options.opener, 'Check second control');
          }
       },
       'Old controls only (1 node)': {
          target: {
-            controlNodes: false,
+            _$controls: false,
             wsControl: { }
          },
          ckeckFn: function(target, result) {
@@ -86,7 +86,7 @@ define([
       },
       'Old controls only (2 nodes)': {
          target: {
-            controlNodes: false,
+            _$controls: false,
             wsControl: {
                _options: {
                   parent: {
@@ -105,14 +105,14 @@ define([
       },
       'Mixed controls 1 (2 nodes)': {
          target: {
-            controlNodes: false,
+            _$controls: false,
             wsControl: {
                _options: {
                   parent: {
                      _options: true,
                      _template: true,
                      _container: {
-                        controlNodes: [{
+                        _$controls: [{
                            control: {
                               _options: false
                            }
@@ -125,12 +125,12 @@ define([
          ckeckFn: function(target, result) {
             assert.isTrue(result.length === 2);
             assert.isTrue(result[0] === target.wsControl, 'Check controls count');
-            assert.isTrue(result[1] === target.wsControl._options.parent._container.controlNodes[0].control, 'Check first control');
+            assert.isTrue(result[1] === target.wsControl._options.parent._container._$controls[0].control, 'Check first control');
          }
       },
       'Mixed controls 2 (2 nodes)': {
          target: {
-            controlNodes: [{
+            _$controls: [{
                control: {
                   _options: {
                      parent: {
@@ -142,13 +142,13 @@ define([
          },
          ckeckFn: function(target, result) {
             assert.isTrue(result.length === 2);
-            assert.isTrue(result[0] === target.controlNodes[0].control, 'Check controls count');
-            assert.isTrue(result[1] === target.controlNodes[0].control._options.parent, 'Check first control');
+            assert.isTrue(result[0] === target._$controls[0].control, 'Check controls count');
+            assert.isTrue(result[1] === target._$controls[0].control._options.parent, 'Check first control');
          }
       },
       'purified opener': {
          target: {
-            controlNodes: false,
+            _$controls: false,
             wsControl: {
                _options: {
                   opener: {

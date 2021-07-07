@@ -1,5 +1,5 @@
 // tslint:disable:ban-ts-ignore
-import { Component, createElement } from 'react';
+import {Component, createElement, ReactNode} from 'react';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { isInit } from 'Application/Initializer';
@@ -31,7 +31,9 @@ import { ChainOfRef, CreateOriginRef } from 'UICore/Ref';
 import { CreateControlNodeRef } from './Refs/CreateControlNodeRef';
 import {goUpByControlTree} from 'UICore/NodeCollector';
 import {constants} from 'Env/Env';
-import { ErrorViewer } from 'UICore/_base/ErrorViewer';
+import { ErrorViewer } from './ErrorViewer';
+import {CreateControlRef} from './Refs/CreateControlRef';
+import {CreateHocRef} from './Refs/CreateHocRef';
 
 export type IControlConstructor<P = IControlOptions> = React.ComponentType<P>;
 
@@ -556,10 +558,12 @@ export default class Control<TOptions extends IControlOptions = {},
             return;
         }
         releaseProperties<TOptions, TState>(this);
+        //@ts-ignore
+        this._destroyed = true;
     }
 
 
-    render(): React.ReactNode {
+    render(responsibility: IResponsibility): React.ReactNode {
         const wasabyOptions = createWasabyOptions(this.props, this.context);
         const { errorViewer = ErrorViewer, errorContainer = ErrorViewer} = this.props;
         /*
@@ -622,7 +626,11 @@ export default class Control<TOptions extends IControlOptions = {},
                 realFiberNode = realFiberNode[0];
             }
             const chainOfRef = new ChainOfRef();
-            chainOfRef.add(new CreateControlNodeRef(this, Control)).add(new CreateOriginRef(realFiberNode.ref));
+            chainOfRef
+               .add(new CreateHocRef(this))
+               .add(new CreateControlNodeRef(this))
+               .add(new CreateControlRef(this))
+               .add(new CreateOriginRef(realFiberNode.ref));
             result = {
                 ...realFiberNode, ref: (node) => {
                     return chainOfRef.execute()(node);
