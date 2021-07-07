@@ -438,12 +438,15 @@ function checkSameEnvironment(env: IDOMEnvironment,
     // задестроится окружение (очищается пурификатором через 10 сек), поэтому следует проверить env на destroy
     // @ts-ignore
     if (isCompatibleTemplate && !env._destroyed) {
-        let htmlEnv = env._rootDOMNode.tagName.toLowerCase() === 'html';
-        // старт может быть от div'a
+        const htmlEnv = env._rootDOMNode.tagName.toLowerCase() === 'html';
         let startFromDiv = false;
-        if (!htmlEnv && env._rootDOMNode.controlNodes[0].control._moduleName === 'SbisEnvUI/Bootstrap') {
-            htmlEnv = env._rootDOMNode.controlNodes[0].control._container;
-            startFromDiv = true;
+        let _element: any = element;
+        while (_element.parentNode && !startFromDiv && !htmlEnv) {
+            if (_element.controlNodes && _element.controlNodes[0] &&
+                _element.controlNodes[0].control._moduleName === 'SbisEnvUI/Bootstrap') {
+                startFromDiv = true;
+            }
+            _element = _element.parentNode;
         }
         if (element.controlNodes[0].environment === env && !htmlEnv) {
             // FIXME: 1. проблема в том, что обработчики событий могут быть только на внутреннем окружении,
@@ -466,7 +469,7 @@ function checkSameEnvironment(env: IDOMEnvironment,
                 return hasHandlerOnEnv;
             }
             // Следует определить есть ли обработчики на внешнем окружении
-            let _element: any = element;
+            _element = element;
             while (_element.parentNode) {
                 _element = _element.parentNode;
                 // проверяем на наличие controlNodes на dom-элементе
