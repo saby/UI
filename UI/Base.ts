@@ -14,4 +14,3 @@
 export { Control, IControlChildren, WasabyPortal } from 'UICore/Base';
 export { IControlOptions, TemplateFunction } from 'UICommon/Base';
 export * from './_base/CommonLib';
-export { default as RouteCompatible } from './_base/RouteCompatible';
