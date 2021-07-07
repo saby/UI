@@ -87,7 +87,7 @@ describe('Тесты работы ключей в шаблонизаторе', (
 
         // потому что в реакте componentDidUpdate реально срабатывает
         // https://codesandbox.io/s/react-list-sample-map-with-keys-forked-ldi42
-        assert.equal(inst._children.item_5.updated, 0);
+        assert.equal(inst._children.item_5.updated, 3);
     });
 
     it('Выставленные ключи для контролов внутри цикла позволяют избежать лишних перерисовок контролов 2', async () => {
@@ -107,7 +107,6 @@ describe('Тесты работы ключей в шаблонизаторе', (
         await tickAsync(0);
         await tickAsync(0);
 
-        // если
-        assert.equal(inst._children.item_5.updated, 0);
+        assert.equal(inst._children.item_5.updated, 3);
     });
 });
