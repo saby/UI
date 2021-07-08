@@ -25,3 +25,4 @@ export function selectRenderDomNode(node: HTMLElement): HTMLElement {
 }
 export { ErrorViewer } from './_base/ErrorViewer';
 export { IErrorViewer } from './_base/interfaces';
+export { default as RouteCompatible } from './_base/RouteCompatible';

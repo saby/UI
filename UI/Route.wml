@@ -1,4 +1,4 @@
-<UI._base.RouteCompatible
+<UICore.Base:RouteCompatible
    application="{{application}}"
    scope="{{_options}}"
    attr:key="bd_"
