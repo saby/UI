@@ -1,16 +1,15 @@
-import {Control} from 'UI/Base';
-import {TControlConstructor} from 'UICommon/interfaces';
 import {IDOMEnvironment} from 'UICore/interfaces';
+import {IControl} from 'UICommon/interfaces';
 import {Logger} from 'UICommon/Utils';
+import {TControlNode} from './TControlNode';
 
-interface IControlNode {
-    control: Control;
+export interface IControlNode {
+    control: IControl;
     element: HTMLElement;
     parent: HTMLElement;
     environment: IDOMEnvironment;
     id: string;
 }
-type TControlNode = HTMLElement | Control;
 
 function getNumberId(id: string | 0): number {
     return parseInt((id + '').replace('inst_', ''), 10);
@@ -41,7 +40,7 @@ function addControlNode(controlNodes: IControlNode[], controlNode: IControlNode)
     }
 }
 
-function removeControlNode(controlNodes: IControlNode[], controlToRemove: Control): void {
+function removeControlNode(controlNodes: IControlNode[], controlToRemove: IControl): void {
     if (!controlNodes) {
         return;
     }
@@ -52,23 +51,9 @@ function removeControlNode(controlNodes: IControlNode[], controlToRemove: Contro
         controlNodes.splice(controlNodes.indexOf(foundControlNode), 1);
     }
 }
-export function prepareContainer(node: TControlNode, control: Control, constructor: TControlConstructor) {
-    if (node?.nodeType) {
-        // если у контрола отрисовался контейнер, используем его
-        return node;
-    } else if (node?._container?.nodeType) {
-        // если строим хок и дочерний контрол уже построен, используем его элемент как контейнер
-        return node._container;
-    }
-    if (node instanceof constructor) {
-        // храним родительский хок, чтобы потом ему установить контейнер тоже
-        // @ts-ignore
-        node._parentHoc = control;
-    }
-    return node;
-}
 
-export function prepareControlNodes(node: TControlNode, control: Control, container: HTMLElement): void {
+export function prepareControlNodes(node: TControlNode, control: IControl): void {
+    const container = node?._container || node;
     if (!container) {
         return;
     }
