@@ -15,3 +15,4 @@ export { getGeneratorConfig } from './_base/GeneratorConfig';
 export { default as WasabyPortal } from './_base/WasabyPortal';
 
 export { default as startApplication, selectRenderDomNode } from './_base/startApplication';
+export { default as RouteCompatible } from './_base/RouteCompatible';
