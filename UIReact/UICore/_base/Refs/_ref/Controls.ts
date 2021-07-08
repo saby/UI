@@ -1,5 +1,5 @@
-import {TControlNode} from './TControlNode';
-import {IControl} from 'UICommon/interfaces';
+import { TControlNode } from './TControlNode';
+import { IControl } from 'UICommon/interfaces';
 
 export interface IControlObj {
    control: IControl;
