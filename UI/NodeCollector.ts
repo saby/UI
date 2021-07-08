@@ -4,4 +4,4 @@
  * @author Шипин А.А.
  */
 
-export { goUpByControlTree } from 'UICore/NodeCollector';
+export { goUpByControlTree, getClosestControl } from 'UICore/NodeCollector';
