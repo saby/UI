@@ -5,4 +5,4 @@
  */
 
 export { default as goUpByControlTree } from './_nodeCollector/goUpByControlTree';
-export {getClosestControl} from './_nodeCollector/getClosestControl';
+export { getClosestControl } from './_nodeCollector/getClosestControl';

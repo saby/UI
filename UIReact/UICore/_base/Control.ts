@@ -1,14 +1,14 @@
 // tslint:disable:ban-ts-ignore
-import {Component, createElement, ReactNode} from 'react';
+import { Component, createElement } from 'react';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { isInit } from 'Application/Initializer';
-import {getStateReceiver} from 'Application/Env';
-import {IStateReceiverMeta} from 'Application/State';
-import {EMPTY_THEME, getThemeController} from 'UICommon/theme/controller';
-import {getResourceUrl, Logger, needToBeCompatible} from 'UICommon/Utils';
-import {Options} from 'UICommon/Vdom';
-import {makeWasabyObservable, pauseReactive, releaseProperties} from 'UICore/WasabyReactivity';
+import { getStateReceiver } from 'Application/Env';
+import { IStateReceiverMeta } from 'Application/State';
+import { EMPTY_THEME, getThemeController } from 'UICommon/theme/controller';
+import { getResourceUrl, Logger, needToBeCompatible } from 'UICommon/Utils';
+import { Options } from 'UICommon/Vdom';
+import { makeWasabyObservable, pauseReactive, releaseProperties } from 'UICore/WasabyReactivity';
 import cExtend = require('Core/core-extend');
 import isNewEnvironment = require('Core/helpers/isNewEnvironment');
 
@@ -21,19 +21,19 @@ import {
     TWasabyContext
 } from 'UICore/Contexts';
 
-import {OptionsResolver} from 'UICommon/Executor';
+import { OptionsResolver } from 'UICommon/Executor';
 
-import {WasabyEvents, callNotify} from 'UICore/Events';
-import {IWasabyEventSystem} from 'UICommon/Events';
-import {TIState, TControlConfig, IControl} from 'UICommon/interfaces';
-import {IControlOptions, TemplateFunction} from 'UICommon/Base';
+import { WasabyEvents, callNotify } from 'UICore/Events';
+import { IWasabyEventSystem } from 'UICommon/Events';
+import { TIState, TControlConfig, IControl } from 'UICommon/interfaces';
+import { IControlOptions, TemplateFunction } from 'UICommon/Base';
 import { ChainOfRef, CreateOriginRef } from 'UICore/Ref';
 import { CreateControlNodeRef } from './Refs/CreateControlNodeRef';
-import {goUpByControlTree} from 'UICore/NodeCollector';
-import {constants} from 'Env/Env';
+import { goUpByControlTree } from 'UICore/NodeCollector';
+import { constants } from 'Env/Env';
 import { ErrorViewer } from './ErrorViewer';
-import {CreateControlRef} from './Refs/CreateControlRef';
-import {CreateHocRef} from './Refs/CreateHocRef';
+import { CreateControlRef } from './Refs/CreateControlRef';
+import { CreateHocRef } from './Refs/CreateHocRef';
 
 export type IControlConstructor<P = IControlOptions> = React.ComponentType<P>;
 

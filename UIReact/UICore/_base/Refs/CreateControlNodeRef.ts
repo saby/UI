@@ -1,6 +1,6 @@
 import { Responsibility, IResponsibilityHandler } from 'UICore/Ref';
-import { prepareControlNodes } from './ControlNodes';
-import {IControl} from 'UICommon/interfaces';
+import { prepareControlNodes } from './_ref/ControlNodes';
+import { IControl } from 'UICommon/interfaces';
 
 export class CreateControlNodeRef extends Responsibility {
     private readonly _control: IControl;

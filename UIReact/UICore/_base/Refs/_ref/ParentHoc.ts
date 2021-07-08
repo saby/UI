@@ -1,5 +1,5 @@
-import {TControlNode} from './TControlNode';
-import {IControl} from 'UICommon/interfaces';
+import { TControlNode } from './TControlNode';
+import { IControl } from 'UICommon/interfaces';
 
 export function prepareContainer(node: TControlNode, control: IControl) {
    // @ts-ignore это утиная проверка. тут может быть нода, и у нее нет поля _beforeMount
