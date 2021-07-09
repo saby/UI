@@ -5,7 +5,9 @@ export function createGenerator(isVdom, forceCompatible = false, config): IGener
    if (isVdom) {
       return Vdom(config);
    }
-
+   if (typeof config === 'undefined') {
+      config = {};
+   }
    const Compatible = getIfNeedGeneratorCompatible(forceCompatible, config);
    if (Compatible) {
       return Compatible;
