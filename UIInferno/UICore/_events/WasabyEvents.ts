@@ -475,7 +475,7 @@ function checkSameEnvironment(env: IDOMEnvironment,
                 // проверяем на наличие controlNodes на dom-элементе
                 if (_element.controlNodes && _element.controlNodes[0]) {
                     // нашли самое верхнее окружение
-                    if (_element.controlNodes[0].environment._rootDOMNode.tagName.toLowerCase() === 'html' || startFromDiv) {
+                    if (_element.controlNodes[0].environment._rootDOMNode.tagName.toLowerCase() === 'html') {
                         // проверяем, что такой обработчик есть
                         if (typeof _element.controlNodes[0].environment.showCapturedEvents()[event.type] !== 'undefined') {
                             // обработчик есть на двух окружениях. Следует проанализировать обработчики на обоих окружениях
@@ -496,7 +496,7 @@ function checkSameEnvironment(env: IDOMEnvironment,
                 }
             }
         }
-        return htmlEnv;
+        return htmlEnv || startFromDiv;
     }
     return element.controlNodes[0].environment === env;
 }
