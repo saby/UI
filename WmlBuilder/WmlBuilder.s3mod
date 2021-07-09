@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<ui_module id="16b7a546-95bc-437c-af6a-77f8bbf2a724" name="WmlBuilder" package="Платформа" responsible="Шипин А.А." version="1.00">
+<ui_module id="16b7a546-95bc-437c-af6a-77f8bbf2a724" name="WmlBuilder" package="Presentation" responsible="Шипин А.А." version="1.00">
 
   <description>Builder WML files</description>
 
