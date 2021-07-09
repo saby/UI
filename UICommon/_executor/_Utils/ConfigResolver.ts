@@ -89,8 +89,7 @@ function getInsertedData(templateCfg: any): any {
    return insertedData;
 }
 function preventMergeOptions(data: any): boolean {
-   // todo удалить поддержку preventMergeOptions
-   return data && (data._$preventMergeOptions || data._preventMergeOptions);
+   return data?._preventMergeOptions;
 }
 
 export function addContentOptionScope(data: any, templateCfg: any): any {
