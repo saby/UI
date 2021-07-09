@@ -43,7 +43,7 @@ let countInst = 1;
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
- * @author Mogilevsky Ivan
+ * @author Шипин А.А.
  */
 export default class Control<TOptions extends IControlOptions = {},
     TState extends TIState = void> extends Component<TOptions, IControlState> implements IControl {
