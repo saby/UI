@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<ui_module id="0f15ac6b-86b2-4265-9da1-05eac93ebdf6" name="UICommon" package="Платформа" responsible="Шипин А.А." required="1" version="1.00">
+<ui_module id="0f15ac6b-86b2-4265-9da1-05eac93ebdf6" name="UICommon" package="Presentation" responsible="Шипин А.А." required="1" version="1.00">
 
   <description>Интерфейсы и общий функционал для UIReact и UIInferno</description>
 

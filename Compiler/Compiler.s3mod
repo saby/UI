@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<ui_module id="1456f36f-76ef-4323-a2dd-a22bc91e7209" name="Compiler" package="Платформа" responsible="Крылов М. А." required="1" version="1.00">
+<ui_module id="1456f36f-76ef-4323-a2dd-a22bc91e7209" name="Compiler" package="Presentation" responsible="Крылов М. А." required="1" version="1.00">
   <description>
     Интерфесный модуль компилятора шаблонов WML фреймворка Wasaby
   </description>

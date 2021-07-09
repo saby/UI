@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<ui_module id="f27abe12-19df-4c9f-b886-634bd20a0011" name="UI" package="Платформа" responsible="Шипин А.А." required="1" version="1.00">
+<ui_module id="f27abe12-19df-4c9f-b886-634bd20a0011" name="UI" package="Presentation" responsible="Шипин А.А." required="1" version="1.00">
 
   <description>Библиотека, позволяющая собрать "каркас" веб-приложения; содержит набор правил, техник и решений, допустимых при разработке прикладных решений.</description>
 
