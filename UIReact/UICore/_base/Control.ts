@@ -562,7 +562,9 @@ export default class Control<TOptions extends IControlOptions = {},
 
 
     render(): React.ReactNode {
-        const wasabyOptions = createWasabyOptions(this.props, this.context);
+        type TCompCnstr = Function & { getDefaultOptions: () => Record<string, unknown> };
+        const wasabyDefaultProps: Record<string, unknown> = (this.constructor as TCompCnstr)?.getDefaultOptions?.();
+        const wasabyOptions = createWasabyOptions(this.props, this.context, wasabyDefaultProps);
         const { errorViewer = ErrorViewer, errorContainer = ErrorViewer} = this.props;
         /*
         Валидируем опции именно здесь по двум причинам:
@@ -928,10 +930,11 @@ function logError(e: Error): void {
  */
 function createWasabyOptions<T extends IControlOptions>(
     props: T,
-    contextValue: IWasabyContextValue
+    contextValue: IWasabyContextValue,
+    wasabyDefaulotProps?: Record<string, unknown> | undefined
 ): T {
     // клон нужен для того, чтобы не мутировать реактовские опции при подкладывании readOnly и theme
-    const newProps = {...props};
+    const newProps = { ...wasabyDefaulotProps, ...props };
     newProps.readOnly = props.readOnly ?? contextValue?.readOnly;
     newProps.theme = props.theme ?? contextValue?.theme;
     return newProps;
