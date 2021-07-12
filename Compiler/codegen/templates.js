@@ -128,7 +128,7 @@ define('Compiler/codegen/templates', [
          for (functionName in templateFunction.includedFn) {
             if (templateFunction.includedFn.hasOwnProperty(functionName)) {
                includedTemplates += codegenFeatureFunction.createTemplateFunctionString(
-                  functionName, templateFunction.includedFn[functionName]
+                  templateFunction.includedFn[functionName], functionName
                );
                localDependenciesList += 'depsLocal["' + functionName + '"] = ' + functionName + ';';
             }

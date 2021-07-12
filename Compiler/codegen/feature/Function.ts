@@ -9,6 +9,8 @@ const WASABY_TEMPLATE_PARAMETERS = [
    'generatorConfig'
 ];
 
+const EMPTY_STRING = '';
+
 function replaceAnonymousFunctionName(name: string, text: string): string {
    return text.replace('function anonymous', `function ${name}`);
 }
@@ -18,7 +20,7 @@ export function createTemplateFunction(body: string): Function {
    return new Function(params, body);
 }
 
-export function createTemplateFunctionString(name: string, body: string): string {
+export function createTemplateFunctionString(body: string, name: string = EMPTY_STRING): string {
    const text = createTemplateFunction(body).toString();
    return replaceAnonymousFunctionName(name, text);
 }
