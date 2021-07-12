@@ -97,7 +97,6 @@ export type IDeserializeMeta = (s: ISerializedMetaState) => IMetaStateInternal;
  * Мета-данные страницы
  * @public
  * @example
- * import { getMetaStack } from 'UI/Base';
  * const meta: IMeta = {
  *    title: 'Page title',
  *    og: {
@@ -108,7 +107,6 @@ export type IDeserializeMeta = (s: ISerializedMetaState) => IMetaStateInternal;
  *        url: 'http://www.site.com/example'
  *    }
  * }
- * getMetaStack().push(meta);
  * @author Печеркин С.В.
  */
 export interface IMeta {
