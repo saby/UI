@@ -58,7 +58,7 @@ define('Compiler/codegen/templates', [
 
    var privateTemplate = preprocessRawTemplate(jstpl.PRIVATE_TEMPLATE);
    var privateTemplateHeader = preprocessRawTemplate(jstpl.PRIVATE_TEMPLATE_HEADER);
-   var partialTemplate = preprocessRawTemplate(jstpl.PARTIAL_TEMPLATE);
+   var partialTemplateHeader = preprocessRawTemplate(jstpl.PARTIAL_TEMPLATE_HEADER);
 
    /**
     * Очистить сгенерированный текст шаблона от deprecated-блоков.
@@ -354,12 +354,10 @@ define('Compiler/codegen/templates', [
 
    /**
     * Сгенерировать partial шаблон
-    * @param body {string} Тело шаблона.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generatePartialTemplate(body) {
-      return partialTemplate
-         .replace('/*#BODY#*/', generateReturnValueFunction(body));
+   function generatePartialTemplate() {
+      return partialTemplateHeader;
    }
 
    return {

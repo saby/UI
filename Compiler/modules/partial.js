@@ -8,10 +8,11 @@ define('Compiler/modules/partial', [
    'Compiler/codegen/templates',
    'Compiler/codegen/TClosure',
    'Compiler/codegen/feature/Partial',
-   'Compiler/codegen/Internal'
+   'Compiler/codegen/Internal',
+   'Compiler/codegen/feature/Function'
 ], function partialLoader(
    injectedDataForce, names, Process, parse, FSC,
-   Generator, templates, TClosure, FeaturePartial, Internal
+   Generator, templates, TClosure, FeaturePartial, Internal, codegenFeatureFunction
 ) {
    'use strict';
 
@@ -264,7 +265,9 @@ define('Compiler/modules/partial', [
 
       // TMPL compiler
       var inlineTemplateBody = this.getString(tag.children, {}, this.handlers, {}, true);
-      var inlineTemplateFunction = templates.generatePartialTemplate(inlineTemplateBody);
+      var inlineTemplateFunction = '(' + codegenFeatureFunction.createTemplateFunctionString(
+         templates.generatePartialTemplate() + inlineTemplateBody, 'f2'
+      ) + ')';
       return Generator.genCreateControlNew(
          'inline',
          templateValue,

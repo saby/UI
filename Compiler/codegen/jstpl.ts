@@ -278,14 +278,12 @@ export const OBJECT_TEMPLATE_REACT = `(new(function () {
  * Output template code fragment.
  * @deprecated
  */
-export const PARTIAL_TEMPLATE = `(function f2(data, attr) {
-  var key = thelpers.validateNodeKey(attr && attr.key);
-  var defCollection = {
-    id: [],
-    def: undefined
-  };
-  /*#BODY#*/
-})
+export const PARTIAL_TEMPLATE_HEADER = `
+var key = thelpers.validateNodeKey(attr && attr.key);
+var defCollection = {
+ id: [],
+ def: undefined
+};
 `;
 
 /**
