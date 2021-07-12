@@ -6,7 +6,7 @@ export type ISerializedMetaState = string;
  * Хранилище состояний meta-тегов
  * @interface UI/Base:IMetaStack
  * @public
- * @author Ибрагимов А.А.
+ * @author Печеркин С.В.
  */
 export interface IMetaStack {
    /**
@@ -47,7 +47,7 @@ export type IDeserializeStack = (s: ISerializedMetaStack) => IMetaStackInternal;
  * Состояние meta-тегов
  * @interface UI/Base:IMetaState
  * @public
- * @author Ибрагимов А.А.
+ * @author Печеркин С.В.
  */
 export interface IMetaState {
    /**
@@ -92,29 +92,63 @@ export interface IMetaStateInternal extends IMetaState {
 }
 export type IDeserializeMeta = (s: ISerializedMetaState) => IMetaStateInternal;
 
+
 /**
- * @typedef IMeta
- * @property {string} title Title страницы
- * @property {IOpenGraph} [og] OpenGraph тэги страницы
+ * Мета-данные страницы
+ * @public
+ * @example
+ * import { getMetaStack } from 'UI/Base';
+ * const meta: IMeta = {
+ *    title: 'Page title',
+ *    og: {
+ *        description: 'Some Description',
+ *        title: 'Example title',
+ *        image: 'http://site.com/images/example.jpg',
+ *        type: 'article',
+ *        url: 'http://www.site.com/example'
+ *    }
+ * }
+ * getMetaStack().push(meta);
+ * @author Печеркин С.В.
  */
 export interface IMeta {
-   /** Title страницы */
+   /**
+    * Title страницы
+    */
    title: string;
+   /**
+    * OpenGraph тэги страницы
+    */
    og?: Partial<IOpenGraph>;
 }
+
 /**
- * @typedef IOpenGraph
- * @property {string} description
- * @property {string} title
- * @property {string} image
- * @property {string} type
- * @property {string} url
+ * Интерфейс для метаданных OpenGraph (og)
+ * @public
+ * @remark
+ * OpenGraph - протокол, для формирования  данных в превью в посте в соц. сетях.
+ * @author Печеркин С.В.
  */
 export interface IOpenGraph {
+   /**
+    * краткое описание
+    */
    description: string;
+   /**
+    * заголовок поста
+    */
    title: string;
+   /**
+    * ссылка на картинку
+    */
    image: string;
+   /**
+    * тип страницы (статья, новость, видео, категория и т. д.)
+    */
    type: string;
+   /**
+    * ссылка на страницу сайта
+    */
    url: string;
 }
 
