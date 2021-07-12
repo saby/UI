@@ -3,9 +3,8 @@ define('UIDemo/CompatibleDemo/WasabyEnv/DemoControls/WS3Container', [
    'wml!UIDemo/CompatibleDemo/WasabyEnv/DemoControls/WS3Container',
    'UI/Base',
    'Vdom/Vdom',
-   'UIDemo/CompatibleDemo/WasabyEnv/DemoControls/WasabyContainer',
-   'Core/helpers/Hcontrol/makeInstanceCompatible'
-], function(CompoundControl, template, Base, Vdom, WasabyContainer, makeInstanceCompatible) {
+   'UIDemo/CompatibleDemo/WasabyEnv/DemoControls/WasabyContainer'
+], function(CompoundControl, template, Base, Vdom, WasabyContainer) {
 
    var CompatibleDemoNext = CompoundControl.extend({
       _dotTplFn: template,
