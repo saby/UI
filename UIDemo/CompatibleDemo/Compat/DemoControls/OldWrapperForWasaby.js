@@ -3,9 +3,8 @@ define('UIDemo/CompatibleDemo/Compat/DemoControls/OldWrapperForWasaby', [
    'wml!UIDemo/CompatibleDemo/Compat/DemoControls/OldWrapperForWasaby',
    'UI/Base',
    'Vdom/Vdom',
-   'Controls/input',
-   'Core/helpers/Hcontrol/makeInstanceCompatible'
-], function(CompoundControl, template, Base, Vdom, input, makeInstanceCompatible) {
+   'Controls/input'
+], function(CompoundControl, template, Base, Vdom, input) {
 
    var CompatibleDemoNext = CompoundControl.extend({
       _dotTplFn: template,
