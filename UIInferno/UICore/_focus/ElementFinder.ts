@@ -126,38 +126,25 @@ export function getElementProps(element: HTMLElement): IFocusElementProps {
 
    enabled = (flags & (CLASS_HIDDEN_FLAG | CLASS_DISABLED_FLAG)) === 0;
    if (enabled) {
-      enabled = getStyle(element, 'display') !== 'none' && getStyle(element, 'visibility') !== 'invisible';
+      enabled = getStyle(element, 'display') !== 'none' && getStyle(element, 'visibility') !== 'hidden';
    }
-   if (enabled) {
-      tabIndexAttr = element.getAttribute('tabindex');
-      tabIndex = parseInt(tabIndexAttr, 10);
-      isContentEditable = element.getAttribute('contenteditable') === 'true';
-      if(isNaN(tabIndex)) {
-         tabIndex = fixInvalidTabindex(element, isContentEditable);
-      }
-      result = {
-         enabled: true,
-         tabStop:
-            (tabIndex >= 0) ||
-            (tabIndexAttr === null && getTabStopState(element)) ||
-            (tabIndex !== -1 && isContentEditable),
-         createsContext: (flags & CLASS_CREATES_CONTEXT) !== 0,
-         tabIndex: tabIndex,
-         delegateFocusToChildren: ((flags & CLASS_DELEGATES_TAB_FLAG) !== 0 && !isContentEditable),
-         tabCycling: (flags & CLASS_TAB_CYCLING) !== 0
-      };
-   } else {
-      result = {
-         enabled: false,
-         tabStop: false,
-         createsContext: false,
-         tabIndex: 0,
-         delegateFocusToChildren: false,
-         tabCycling: false
-      };
+   tabIndexAttr = element.getAttribute('tabindex');
+   tabIndex = parseInt(tabIndexAttr, 10);
+   isContentEditable = element.getAttribute('contenteditable') === 'true';
+   if(isNaN(tabIndex)) {
+      tabIndex = fixInvalidTabindex(element, isContentEditable);
    }
-
-   return result;
+   return {
+      enabled,
+      tabStop:
+         (tabIndex >= 0) ||
+         (tabIndexAttr === null && getTabStopState(element)) ||
+         (tabIndex !== -1 && isContentEditable),
+      createsContext: (flags & CLASS_CREATES_CONTEXT) !== 0,
+      tabIndex: tabIndex,
+      delegateFocusToChildren: ((flags & CLASS_DELEGATES_TAB_FLAG) !== 0 && !isContentEditable),
+      tabCycling: (flags & CLASS_TAB_CYCLING) !== 0
+   };
 }
 
 function firstElementChild(element: Element): Element | null {
