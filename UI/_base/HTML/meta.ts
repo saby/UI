@@ -9,7 +9,7 @@
  * вызвать функцию getMetaStack, который возвращает синглтон MetaStack и использовать его API:
  * push(IMeta): IMetaState - для добавления метаданных
  * remove(IMetaState): void - для удаления метаданных
- * Через данное API можно работать ТОЛЬКО с такими метатегами как title и/или og.
+ * Через данное API можно работать ТОЛЬКО с такими метатегами как title и og.
  * @example
  * import { getMetaStack } from 'UI/Base';
  * const meta: IMeta = {
