@@ -597,7 +597,7 @@ const COMPILER_DIAGNOSTIC_TITLE = 'Template Compiler';
  */
 export function createErrorHandler(isJIT: boolean, title: string = COMPILER_DIAGNOSTIC_TITLE): IErrorHandler {
    if (isJIT) {
-      const logger = new Logger();
+      const logger = new StackLogger();
       const formatter = new ErrorFormatter(title, decorateMessageJIT);
       return new ErrorHandler(logger, formatter);
    }
