@@ -14,7 +14,8 @@ define('Compiler/codegen/function', [
    'Compiler/codegen/templates',
    'Compiler/codegen/Generator',
    'Compiler/codegen/TClosure',
-   'Compiler/Config'
+   'Compiler/Config',
+   'Compiler/codegen/feature/Function'
 ], function processingModule(
    Helpers,
    Process,
@@ -31,7 +32,8 @@ define('Compiler/codegen/function', [
    templates,
    Generator,
    TClosure,
-   builderConfig
+   builderConfig,
+   codegenFeatureFunction
 ) {
    'use strict';
 
@@ -258,8 +260,7 @@ define('Compiler/codegen/function', [
             this.childrenStorage = ast.childrenStorage;
 
             str = this.getString(ast, data, handlers, attributes, internal);
-            // eslint-disable-next-line no-new-func
-            func = new Function('data, attr, context, isVdom, sets, forceCompatible, generatorConfig', str);
+            func = codegenFeatureFunction.createTemplateFunction(str);
             func.includedFunctions = this.includedFunctions;
             func.privateFn = this.privateFn;
             func.includedFn = this.includedFn;

@@ -1,7 +1,8 @@
 define('Compiler/codegen/templates', [
    'Compiler/codegen/jstpl',
-   'Compiler/Config'
-], function(jstpl, builderConfig) {
+   'Compiler/Config',
+   'Compiler/codegen/feature/Function'
+], function(jstpl, builderConfig, codegenFeatureFunction) {
    'use strict';
 
    /**
@@ -126,7 +127,9 @@ define('Compiler/codegen/templates', [
       if (templateFunction.includedFn) {
          for (functionName in templateFunction.includedFn) {
             if (templateFunction.includedFn.hasOwnProperty(functionName)) {
-               includedTemplates += 'function ' + functionName + '(data, attr, context, isVdom, sets, forceCompatible, generatorConfig)' + templateFunction.includedFn[functionName];
+               includedTemplates += codegenFeatureFunction.createTemplateFunctionString(
+                  functionName, templateFunction.includedFn[functionName]
+               );
                localDependenciesList += 'depsLocal["' + functionName + '"] = ' + functionName + ';';
             }
          }
@@ -346,7 +349,7 @@ define('Compiler/codegen/templates', [
    function generatePrivateTemplateHeader(name, body) {
       return privateTemplateHeader
          .replace('/*#NAME#*/', generateReturnValueFunction(name))
-         .replace('/*#BODY#*/', generateReturnValueFunction(body));
+         .replace('/*#TEMPLATE_FUNCTION#*/', generateReturnValueFunction(body));
    }
 
    /**

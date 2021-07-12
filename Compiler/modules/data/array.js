@@ -5,8 +5,9 @@ define('Compiler/modules/data/array', [
    'Compiler/modules/data/utils/dataTypesCreator',
    'Compiler/modules/data/utils/functionStringCreator',
    'Compiler/codegen/templates',
-   'Compiler/codegen/Internal'
-], function arrayLoader(ErrorHandlerLib, parseUtils, tagUtils, DTC, FSC, templates, Internal) {
+   'Compiler/codegen/Internal',
+   'Compiler/codegen/feature/Function'
+], function arrayLoader(ErrorHandlerLib, parseUtils, tagUtils, DTC, FSC, templates, Internal, codegenFeatureFunction) {
    'use strict';
 
    /**
@@ -54,9 +55,7 @@ define('Compiler/modules/data/array', [
       //  В таком случае создается контентная опция и сразу вызывается. Результат - строка (верстка).
       var postfixCall = string ? '(Object.create(data), null, context)' : '';
       var dirtyCh = generateInternal(string, injected, this.includedFn, this.internalFunctions, fileName);
-
-      // eslint-disable-next-line no-new-func
-      var func = new Function('data, attr, context, isVdom, sets, forceCompatible, generatorConfig', funcText);
+      var func = codegenFeatureFunction.createTemplateFunction(funcText);
       var funcName = this.setFunctionName(func, wsTemplateName, undefined, cleanPropertyName);
       this.includedFunctions[cleanPropertyName] = func;
       if (this.privateFn) {

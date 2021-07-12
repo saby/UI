@@ -309,9 +309,7 @@ export const PRIVATE_TEMPLATE = `{
  * @deprecated
  */
 export const PRIVATE_TEMPLATE_HEADER = `(function () {
-  includedTemplates["/*#NAME#*/"] = (function (data, attr, context, isVdom) {
-    /*#BODY#*/
-  }.bind({
+  includedTemplates["/*#NAME#*/"] = (/*#TEMPLATE_FUNCTION#*/.bind({
     includedTemplates: includedTemplates
   }));
 })(),
