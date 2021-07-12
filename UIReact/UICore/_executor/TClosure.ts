@@ -1,29 +1,7 @@
+import { getIfNeedGeneratorCompatible } from 'UICommon/Executor';
 import { Text, Vdom } from './Markup';
 import { Logger } from 'UICommon/Utils';
 import { Fragment, createElement } from 'react';
-import { CommonUtils } from 'UICommon/Executor';
-import * as ReactDomServer from 'react-dom/server';
-
-let generatorCompatible;
-function getIfNeedGeneratorCompatible(forceCompatible: boolean, config) {
-   if (CommonUtils.disableCompat() || (!CommonUtils.isCompat() && !forceCompatible)) {
-      return false;
-   }
-   if (generatorCompatible && generatorCompatible.generatorConfig === config) {
-      return generatorCompatible;
-   }
-   if (require.defined('View/ExecutorCompatible')) {
-      if (!config) {
-         config = {};
-      }
-      config.serverRenderLib = ReactDomServer;
-      // eslint-disable-next-line
-      generatorCompatible = require('View/ExecutorCompatible').Compatible(config);
-      return generatorCompatible;
-   } else {
-      return false;
-   }
-}
 
 export function createGenerator(isVdom, forceCompatible = false, config) {
    if (isVdom) {
