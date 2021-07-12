@@ -61,6 +61,8 @@ define([
          global.Node = window.Node;
          global.getComputedStyle = window.getComputedStyle;
          Focus._initFocus();
+
+         sandbox.stub(document, 'hasFocus').returns(true);
       });
 
       after(function() {

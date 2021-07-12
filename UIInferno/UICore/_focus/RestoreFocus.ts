@@ -90,6 +90,12 @@ export function restoreFocusAfterRedraw(control: IControl): void {
       return;
    }
 
+   if (!document.hasFocus()) {
+      // Нет смысла восстанавливать фокус, когда пользователь на другой вкладке или в другом окне.
+      // Фокус восстановится при возвращении, если он слетел.
+      return;
+   }
+
    lastSavedEnvironment._restoreFocusState = true;
 
    // если сразу после изменения DOM-дерева фокус слетел в body, пытаемся восстановить фокус на ближайший элемент от
