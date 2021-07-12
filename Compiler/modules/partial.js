@@ -376,7 +376,9 @@ define('Compiler/modules/partial', [
                tpl = tag.attribs._wstemplatename.data.value;
             } else {
                var body = this.getString(tag.children, {}, this.handlers, {}, true);
-               tpl = templates.generatePartialTemplate(body);
+               tpl = '(' + codegenFeatureFunction.createTemplateFunctionString(
+                  templates.generatePartialTemplate() + body, 'f2'
+               ) + ')';
             }
 
             return '(function(){' +
