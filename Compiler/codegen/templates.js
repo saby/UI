@@ -95,9 +95,10 @@ define('Compiler/codegen/templates', [
     * @param dependencies Массив зависимостей.
     * @param reactiveProperties Массив имен реактивных свойств.
     * @param hasTranslations Флаг наличия в единице трансляции конструкции локализации.
+    * @param useReact Флаг react сборки.
     * @returns {string} Сгенерированный текст шаблона.
     */
-   function generateDefine(moduleName, moduleExtension, templateFunction, dependencies, reactiveProperties, hasTranslations) {
+   function generateDefine(moduleName, moduleExtension, templateFunction, dependencies, reactiveProperties, hasTranslations, useReact) {
       var index, functionName, functionBody;
       var includedTemplates = '';
       var localDependenciesList = '';
@@ -139,10 +140,15 @@ define('Compiler/codegen/templates', [
       var headDependencies = [
          'UI/Executor'
       ];
+
       var moduleParams = ['Executor'];
       if (hasTranslations) {
          headDependencies.push('i18n!' + moduleName.split('/')[0]);
          moduleParams.push('rk');
+      }
+      if (useReact) {
+         headDependencies.push('react');
+         moduleParams.push('React');
       }
       if (dependencies) {
          for (index = 0; index < dependencies.length; ++index) {
@@ -168,7 +174,7 @@ define('Compiler/codegen/templates', [
          .replace(/\/\*#REACTIVE_PROPERTIES#\*\//g, generateReturnValueFunction(JSON.stringify(reactiveProperties)));
    }
 
-   function generateTmplDefine(moduleName, moduleExtension, templateFunction, dependencies, reactiveProperties, hasTranslations) {
+   function generateTmplDefine(moduleName, moduleExtension, templateFunction, dependencies, reactiveProperties, hasTranslations, useReact) {
       var index;
       var mainTemplateFunctionName = templateFunction.name;
       if (mainTemplateFunctionName === 'anonymous' || mainTemplateFunctionName === undefined) {
@@ -180,10 +186,15 @@ define('Compiler/codegen/templates', [
       var headDependencies = [
          'UI/Executor'
       ];
+
       var moduleParams = ['Executor'];
       if (hasTranslations) {
          headDependencies.push('i18n!' + moduleName.split('/')[0]);
          moduleParams.push('rk');
+      }
+      if (useReact) {
+         headDependencies.push('react');
+         moduleParams.push('React');
       }
       if (dependencies) {
          for (index = 0; index < dependencies.length; ++index) {
