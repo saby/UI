@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_base/HTML/_meta/interface" />
+/// <amd-module name="UI/_base/_meta/interface" />
 export type ISerializedMetaStack = string;
 export type ISerializedMetaState = string;
 

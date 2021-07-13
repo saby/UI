@@ -31,16 +31,16 @@
  * а вместо этого нужно будет пробрасывать метаданные в компонент-обертку приложения. Например {@link SbisEnvUI/Bootstrap}.
  * @author Печеркин С.В.
  */
-export { default as State } from 'UI/_base/HTML/_meta/State';
-import Stack from 'UI/_base/HTML/_meta/Stack';
-import { IMetaStack, IMetaStackInternal, IMeta, IOpenGraph, IMetaState } from 'UI/_base/HTML/_meta/interface';
+export { default as State } from 'UI/_base/_meta/State';
+import Stack from 'UI/_base/_meta/Stack';
+import { IMetaStack, IMetaStackInternal, IMeta, IOpenGraph, IMetaState } from 'UI/_base/_meta/interface';
 export { Stack, IMetaStack, IMetaStackInternal, IMeta, IOpenGraph, IMetaState };
-import { ResourceMeta } from 'UI/_base/HTML/_meta/ResourceMeta';
+import { ResourceMeta } from 'UI/_base/_meta/ResourceMeta';
 export { ResourceMeta };
 /**
  * Возвращает MetaStack (singleton)
  * @name UI/_base/HTML/meta#getMetaStack
  * @function
- * @returns {UI/_base/HTML/_meta/IMetaStack}
+ * @returns {UI/_base/_meta/IMetaStack}
  */
 export const getMetaStack: () => IMetaStack = Stack.getInstance;

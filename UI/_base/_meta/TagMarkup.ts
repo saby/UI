@@ -1,6 +1,6 @@
-/// <amd-module name="UI/_base/HTML/_meta/TagMarkup" />
+/// <amd-module name="UI/_base/_meta/TagMarkup" />
 
-import { ITagDescription } from 'UI/_base/HTML/_meta/interface';
+import { ITagDescription } from 'UI/_base/_meta/interface';
 import { getResourceUrl } from 'UI/Utils';
 import escapeHtml = require('Core/helpers/String/escapeHtml');
 

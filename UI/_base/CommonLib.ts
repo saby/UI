@@ -11,12 +11,12 @@ import {IHTMLOptions, IHTML} from './interface/IHTML';
 import {IRootTemplateOptions, IRootTemplate} from './interface/IRootTemplate';
 import Creator, { async as AsyncCreator } from './Creator';
 export { startApplication } from 'UICore/Base';
-export { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
-export { fromJML } from 'UI/_base/HTML/_meta/JsonML';
+export { default as TagMarkup } from 'UI/_base/_meta/TagMarkup';
+export { fromJML } from 'UI/_base/_meta/JsonML';
 
 //#region meta data
-import * as meta from 'UI/_base/HTML/meta';
-export { getMetaStack } from 'UI/_base/HTML/meta';
+import * as meta from 'UI/_base/meta';
+export { getMetaStack } from 'UI/_base/meta';
 export { meta };
 //#endregion
 
