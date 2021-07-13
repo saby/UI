@@ -139,8 +139,10 @@ define('Compiler/codegen/templates', [
       var headDependencies = [
          'UI/Executor'
       ];
+      var moduleParams = ['Executor'];
       if (hasTranslations) {
          headDependencies.push('i18n!' + moduleName.split('/')[0]);
+         moduleParams.push('rk');
       }
       if (dependencies) {
          for (index = 0; index < dependencies.length; ++index) {
@@ -150,11 +152,13 @@ define('Compiler/codegen/templates', [
 
       var finalDependencies = headDependencies.concat(dependencies);
       var globalFileNameCode = 'var filename = "' + moduleName + '";';
+      var moduleParamsString = moduleParams.join(', ');
 
       return defineTemplate
          .replace(/\/\*#GLOBAL_FILE_NAME#\*\//g, generateReturnValueFunction(globalFileNameCode))
          .replace(/\/\*#TEMPLATE#\*\//g, generateReturnValueFunction(template))
          .replace(/\/\*#MODULE_EXTENSION#\*\//g, generateReturnValueFunction(moduleExtension))
+         .replace(/\/\*#MODULE_PARAMS#\*\//g, generateReturnValueFunction(moduleParamsString))
          .replace(/\/\*#PRIVATE_TEMPLATES#\*\//g, generateReturnValueFunction(privateTemplates))
          .replace(/\/\*#INCLUDED_TEMPLATES#\*\//g, generateReturnValueFunction(includedTemplates))
          .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, 'true')
@@ -176,8 +180,10 @@ define('Compiler/codegen/templates', [
       var headDependencies = [
          'UI/Executor'
       ];
+      var moduleParams = ['Executor'];
       if (hasTranslations) {
          headDependencies.push('i18n!' + moduleName.split('/')[0]);
+         moduleParams.push('rk');
       }
       if (dependencies) {
          for (index = 0; index < dependencies.length; ++index) {
@@ -186,10 +192,12 @@ define('Compiler/codegen/templates', [
       }
 
       var finalDependencies = headDependencies.concat(dependencies);
+      var moduleParamsString = moduleParams.join(', ');
       return defineTemplate
          .replace(/\/\*#GLOBAL_FILE_NAME#\*\//g, EMPTY_STRING)
          .replace(/\/\*#TEMPLATE#\*\//g, generateReturnValueFunction(template))
          .replace(/\/\*#MODULE_EXTENSION#\*\//g, generateReturnValueFunction(moduleExtension))
+         .replace(/\/\*#MODULE_PARAMS#\*\//g, generateReturnValueFunction(moduleParamsString))
          .replace(/\/\*#PRIVATE_TEMPLATES#\*\//g, EMPTY_STRING)
          .replace(/\/\*#INCLUDED_TEMPLATES#\*\//g, EMPTY_STRING)
          .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, 'false')

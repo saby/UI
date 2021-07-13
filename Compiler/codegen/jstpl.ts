@@ -38,7 +38,7 @@ return out || markupGenerator.createText("");
  * Output template code fragment.
  * @deprecated
  */
-export const DEFINE = `define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEPENDENCIES#*/, function(Executor, rk) {
+export const DEFINE = `define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEPENDENCIES#*/, function(/*#MODULE_PARAMS#*/) {
    function debug() {
       debugger;
    }
