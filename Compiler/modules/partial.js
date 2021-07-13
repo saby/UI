@@ -384,7 +384,7 @@ define('Compiler/modules/partial', [
             var beforeFunctionCall = '(function(){' +
                'attrsForTemplate = ' + createAttribs + '; scopeForTemplate = ' + callDataArg + ';' +
                '}).apply(this),';
-            var functionCall = tpl + codegenFeatureFunction.generateTemplateFunctionCall(tpl, [
+            var functionCall = codegenFeatureFunction.generateTemplateFunctionCall(tpl, [
                'this', 'scopeForTemplate', 'attrsForTemplate', 'context', 'isVdom'
             ]) + ',';
             var afterFunctionCall = '(function(){attrsForTemplate = null;scopeForTemplate = null;}).apply(),';
