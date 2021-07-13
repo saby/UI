@@ -290,16 +290,15 @@ var defCollection = {
  * Output template code fragment.
  * @deprecated
  */
-export const PRIVATE_TEMPLATE = `{
-  var key = thelpers.validateNodeKey(attr && attr.key);
-  var templateCount = 0;
-  var defCollection = {
-    id: [],
-    def: undefined
-  };
-  var viewController = thelpers.calcParent(this, typeof currentPropertyName === "undefined" ? undefined : currentPropertyName, data);
-  /*#BODY#*/
-}
+export const PRIVATE_TEMPLATE = `
+var key = thelpers.validateNodeKey(attr && attr.key);
+var templateCount = 0;
+var defCollection = {
+ id: [],
+ def: undefined
+};
+var viewController = thelpers.calcParent(this, typeof currentPropertyName === "undefined" ? undefined : currentPropertyName, data);
+/*#BODY#*/
 `;
 
 /**
