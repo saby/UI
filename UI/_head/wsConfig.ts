@@ -2,10 +2,10 @@
 
 import { Head as AppHead } from 'Application/Page';
 import { getConfig } from 'Application/Env';
-import { constants } from "Env/Env";
+import { constants } from 'Env/Env';
 import { AppData } from 'UI/State';
 import * as AppEnv from 'Application/Env';
-import { IHeadOptions } from "UI/_head/defaultTags";
+import { IHeadOptions } from 'UI/_head/defaultTags';
 
 /**
  * Подготовка когфига, который прилетит с сервака на клиент
@@ -23,7 +23,6 @@ export function createWsConfig(cfg: IHeadOptions): void {
    const appData = AppData.getAppData();
    let staticDomains: string;
 
-   // @ts-ignore
    staticDomains = getStaticDomains(cfg);
    const defaultServiceUrl = cfg.servicesPath || appData.servicesPath || constants.defaultServiceUrl || '/service/';
    // @ts-ignore
@@ -42,13 +41,13 @@ export function createWsConfig(cfg: IHeadOptions): void {
          `cfg.wsRoot = cfg.wsRoot || '${cfg.wsRoot || appData.wsRoot || constants.wsRoot}';`,
          `cfg.resourceRoot = cfg.resourceRoot || '${cfg.resourceRoot || constants.resourceRoot}';`,
          `cfg.defaultServiceUrl = cfg.defaultServiceUrl || '${defaultServiceUrl}';`,
-         `cfg.appRoot = '${cfg.appRoot || appData.appRoot || (cfg.builder ? '/' : constants.appRoot)}';`,
+         `cfg.appRoot = '${cfg.appRoot || appData.appRoot || constants.appRoot}';`,
          `cfg.RUMEnabled = ${cfg.RUMEnabled || appData.RUMEnabled || false};`,
          `cfg.pageName = '${cfg.pageName || appData.pageName || ''}';`,
          'cfg.userConfigSupport = true;',
          'cfg.trackErrors = true;',
          `cfg.staticDomains = ${staticDomains};`,
-         `cfg.compatible = ${cfg.compat || false};`,
+         'cfg.compatible = false;',
          `cfg.product = '${product}';`,
          `cfg.reactApp = ${cfg.reactApp || false};`,
          `cfg.bootstrapWrapperMode = ${getConfig('bootstrapWrapperMode') as boolean || false};`,
