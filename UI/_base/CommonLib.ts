@@ -1,17 +1,12 @@
 /**
  * Часть библиотеки UI/Base, общая для React и Wasaby.
  */
-import HTML from './HTML';
-import Document from './Document';
 
-import Start from './Start';
 import BootstrapStart from './BootstrapStart';
-import HeadController from './HeadController';
 import { HeadData, headDataStore } from 'UICommon/Deps';
 import { getGeneratorConfig } from 'UICore/Base';
 
 //@ts-ignore
-import * as BaseRoute from 'wml!UI/_base/Route';
 import {IHTMLOptions, IHTML} from './interface/IHTML';
 import {IRootTemplateOptions, IRootTemplate} from './interface/IRootTemplate';
 import Creator, { async as AsyncCreator } from './Creator';
@@ -26,12 +21,7 @@ export { meta };
 //#endregion
 
 export {
-   HTML,
-   BaseRoute,
-   Document,
-   Start,
    BootstrapStart,
-   HeadController,
    Creator,
    AsyncCreator,
    HeadData,

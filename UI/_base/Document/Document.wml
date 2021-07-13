@@ -1,7 +1,0 @@
-<!-- Key generating during SSR and on client will be different
-   because of using the Controls/Application/Route.wml during the SSR
-   Starting from this point key generation during SSR and on client won't be different
-   so we need to set attr:key, to fix difference between keys on client and keys on server -->
-<ws:partial template="{{application}}" attr:key="bd_" scope="{{_options}}"
-            on:themeChanged="setTheme()"
-            on:changeApplication="changeApplicationHandler()"/>
