@@ -24,3 +24,8 @@ export function createTemplateFunctionString(body: string, name: string = EMPTY_
    const text = createTemplateFunction(body).toString();
    return replaceAnonymousFunctionName(name, text);
 }
+
+export function generateTemplateFunctionCall(name: string, args: string[]): string {
+   const params = args.join(', ');
+   return `${name}.call(${params})`;
+}

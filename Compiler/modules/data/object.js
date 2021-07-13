@@ -322,6 +322,13 @@ define('Compiler/modules/data/object', [
             }
          }
          if (this.includedFn) {
+
+            if (this.useReact) {
+               fAsString = codegenFeatureFunction.generateTemplateFunctionCall(fAsString, [
+                  'scope', 'props', 'attr', 'context', 'isVdom', 'sets', 'forceCompatible', 'generatorConfig'
+               ]);
+            }
+
             templateObject.html = FSC.wrapAroundObject(
                templates.generateIncludedTemplate(
                   fAsString,

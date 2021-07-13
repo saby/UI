@@ -67,6 +67,13 @@ define('Compiler/modules/data/array', [
             .replace('function anonymous', 'function ' + funcName)
             .replace(/\n/g, ' ');
       }
+
+      if (this.useReact) {
+         functionToWrap = codegenFeatureFunction.generateTemplateFunctionCall(functionToWrap, [
+            'scope', 'props', 'attr', 'context', 'isVdom', 'sets', 'forceCompatible', 'generatorConfig'
+         ]);
+      }
+
       if (this.includedFn) {
          // Режим wml
          generatedString = templates.generateIncludedTemplate(

@@ -381,11 +381,15 @@ define('Compiler/modules/partial', [
                ) + ')';
             }
 
-            return '(function(){' +
+            var beforeFunctionCall = '(function(){' +
                'attrsForTemplate = ' + createAttribs + '; scopeForTemplate = ' + callDataArg + ';' +
-               '}).apply(this),' + tpl +
-               '.call(this, scopeForTemplate, attrsForTemplate, context, isVdom),' +
-               '(function(){attrsForTemplate = null;scopeForTemplate = null;}).apply(),';
+               '}).apply(this),';
+            var functionCall = tpl + codegenFeatureFunction.generateTemplateFunctionCall(tpl, [
+               'this', 'scopeForTemplate', 'attrsForTemplate', 'context', 'isVdom'
+            ]) + ',';
+            var afterFunctionCall = '(function(){attrsForTemplate = null;scopeForTemplate = null;}).apply(),';
+
+            return beforeFunctionCall + functionCall + afterFunctionCall;
          }
          return resolveStatement;
       }

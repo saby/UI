@@ -233,7 +233,7 @@ export const INCLUDED_TEMPLATE_REACT = `
       var scope = Object.create(data);
       scope.viewController = viewController || null;
       var bindFn = function(props) {
-        return /*#TEMPLATE#*/.call(scope, props, attr, context, isVdom, sets, forceCompatible, generatorConfig);
+        return /*#TEMPLATE#*/;
       };
 
       /*#DELETE IT START#*/
