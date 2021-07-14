@@ -1,5 +1,5 @@
-/// <amd-module name="UI/_base/HTML/_meta/DOMmanipulator" />
-import { IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
+/// <amd-module name="UI/_base/_meta/DOMmanipulator" />
+import { IMetaStateInternal } from 'UI/_base/_meta/interface';
 import { Head as HeadAPI } from 'Application/Page';
 import type { IPageTagId } from 'Application/Page';
 

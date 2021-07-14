@@ -2,13 +2,12 @@
 
 import { Head as AppHead, JSLinks } from 'Application/Page';
 import type { JML } from 'Application/Page';
-import { getResourceUrl } from "UI/Utils";
+import { getResourceUrl } from 'UI/Utils';
 import escapeHtml = require('Core/helpers/String/escapeHtml');
 
-import { IHTMLOptions } from '../_base/interface/IHTML';
 import { IRootTemplateOptions } from '../_base/interface/IRootTemplate';
 
-export interface IHeadOptions extends IHTMLOptions, IRootTemplateOptions {
+export interface IHeadOptions extends IRootTemplateOptions {
    defaultTheme?: string;
    theme?: string;
    noscript?: string;
@@ -31,11 +30,9 @@ export function createViewPort(): void {
 export function createDefaultTags(cfg: IHeadOptions): void {
    const API = AppHead.getInstance();
 
-   if (!cfg.compat) {
-      API.createTag('script', {type: 'text/javascript'},
-         `window.themeName = '${cfg.theme || cfg.defaultTheme || ''}';`
-      );
-   }
+   API.createTag('script', {type: 'text/javascript'},
+      `window.themeName = '${cfg.theme || cfg.defaultTheme || ''}';`
+   );
 
    if(cfg.noscript){
       API.createNoScript(cfg.noscript);

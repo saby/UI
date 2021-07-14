@@ -77,10 +77,6 @@
  * Данная настройка попадает в свойство defaultServiceUrl объекта window.wsConfig.
  */
 
-export interface IRootTemplate {
-    readonly '[UI/_base/interface/IRootTemplate]': boolean;
-}
-
 export interface IRootTemplateOptions {
     buildnumber?: string;
     product?: string;
