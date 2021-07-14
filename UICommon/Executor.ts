@@ -17,7 +17,8 @@ export {
     RequireHelper,
     invisibleNodeTagName,
     VoidTags,
-    ConfigResolver
+    ConfigResolver,
+    Class
 } from './_executor/Utils';
 
 export { onElementMount, onElementUnmount } from './_executor/_Utils/ChildrenManager';
