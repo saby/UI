@@ -1,12 +1,12 @@
-/// <amd-module name="UI/_base/HTML/_meta/ResourceMeta"/>
-import { IMeta, IMetaState, IMetaStack } from 'UI/_base/HTML/_meta/interface';
-import { default as Stack } from 'UI/_base/HTML/_meta/Stack';
+/// <amd-module name="UI/_base/_meta/ResourceMeta"/>
+import { IMeta, IMetaState, IMetaStack } from 'UI/_base/_meta/interface';
+import { default as Stack } from 'UI/_base/_meta/Stack';
 import { IResourceDisposable } from 'Application/State';
 
 const getMetaStack: () => IMetaStack = Stack.getInstance;
 /**
  * Класс-Ресурс, который отвечает за обновление, удаление метаданных
- * @class UI/_base/HTML/_meta/ResourceMeta
+ * @class UI/_base/_meta/ResourceMeta
  * @implements Application/_State/IResourceDisposable
  * @public
  * @author Хамбелов М.И.

@@ -1,8 +1,8 @@
 import { assert } from 'chai';
-import { IMeta } from 'UI/_base/HTML/meta';
-import State from 'UI/_base/HTML/_meta/State';
+import { IMeta } from 'UI/_base/meta';
+import State from 'UI/_base/_meta/State';
 
-describe('UI/_base/HTML/_meta/State', () => {
+describe('UI/_base/_meta/State', () => {
    const meta: IMeta = {
       title: 'Page title',
       og: {

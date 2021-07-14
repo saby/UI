@@ -1,13 +1,13 @@
-/// <amd-module name="UI/_base/HTML/_meta/State" />
+/// <amd-module name="UI/_base/_meta/State" />
 
-import { IMetaState, IMeta, ISerializedMetaState, IMetaStateInternal, ITagDescription, IOpenGraph } from 'UI/_base/HTML/_meta/interface';
+import { IMetaState, IMeta, ISerializedMetaState, IMetaStateInternal, ITagDescription, IOpenGraph } from 'UI/_base/_meta/interface';
 import TagMarkup from './TagMarkup';
 const prefix = typeof window === 'undefined' ? 'ps-' : '';
 let id = 1;
 const generateGuid = () => `state-${prefix}${id++}`;
 /**
- * @class UI/_base/HTML/_meta/State
- * @implements {UI/_base/HTML/_meta/IMetaState}
+ * @class UI/_base/_meta/State
+ * @implements {UI/_base/_meta/IMetaState}
  * @author Ибрагимов А.А.
  */
 export default class State extends TagMarkup implements IMetaStateInternal {

@@ -1,9 +1,9 @@
 import { assert } from 'chai';
-import { IMeta } from 'UI/_base/HTML/meta';
-import Stack from 'UI/_base/HTML/_meta/Stack';
-import State from 'UI/_base/HTML/_meta/State';
-import { createStatesStore } from 'UI/_base/HTML/_meta/Store';
-import { IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
+import { IMeta } from 'UI/_base/meta';
+import Stack from 'UI/_base/_meta/Stack';
+import State from 'UI/_base/_meta/State';
+import { createStatesStore } from 'UI/_base/_meta/Store';
+import { IMetaStateInternal } from 'UI/_base/_meta/interface';
 const meta: IMeta = {
    title: 'Page title',
    og: {
@@ -12,7 +12,7 @@ const meta: IMeta = {
    }
 };
 
-describe('UI/_base/HTML/_meta/Stack', () => {
+describe('UI/_base/_meta/Stack', () => {
 
    describe('constructor', () => {
       it('creates Stack instance', () => {
