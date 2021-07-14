@@ -3,25 +3,55 @@
  * @author Крылов М.А.
  */
 
+const INIT_T_HELPERS = `
+if (typeof thelpers === "undefined" || !thelpers._isTClosure) {
+   eval("var thelpers = null;");
+   thelpers = (function () {
+      return this || (0, eval)('this');
+   })().requirejs("UI/Executor").TClosure;
+}
+`;
+
+const INIT_INCLUDED_TEMPLATES = `
+if (typeof includedTemplates === "undefined") {
+   eval("var includedTemplates = undefined;");
+   includedTemplates = (this && this.includedTemplates) ? this.includedTemplates : {};
+}
+`;
+
+const INIT_KEY_AND_DEF_COLLECTION = `
+var key = thelpers.validateNodeKey(attr && attr.key);
+var defCollection = {
+   id: [],
+   def: undefined
+};
+`;
+
+const INIT_KEY_AND_CONTROLLER = `
+var templateCount = 0;
+${INIT_KEY_AND_DEF_COLLECTION}
+var viewController = thelpers.calcParent(this, typeof currentPropertyName === 'undefined' ? undefined : currentPropertyName, data);
+`;
+
 /**
  * Output template code fragment.
  * @deprecated
  */
-export const BODY = `if (typeof forceCompatible === 'undefined') {
+export const BODY = `
+if (typeof forceCompatible === 'undefined') {
     forceCompatible = false;
 }
 var markupGenerator = thelpers.createGenerator(isVdom, forceCompatible, generatorConfig);
 var funcContext = thelpers.getContext(this);
 var scopeForTemplate, attrsForTemplate;
+
 /*#DELETE IT START#*/
 var filename = "/*#FILE_NAME#*/";
 /*#INITIALIZE_RK_FUNCTION#*/
 funcContext = data;
-if (typeof includedTemplates === "undefined") {
-   eval("var includedTemplates = undefined;");
-   includedTemplates = (this && this.includedTemplates) ? this.includedTemplates : {};
-}
+${INIT_INCLUDED_TEMPLATES}
 /*#DELETE IT END#*/
+
 try {
    var out = markupGenerator.joinElements([ /*#MARKUP_GENERATION#*/ ], key, defCollection);
    if (defCollection && defCollection.def) {
@@ -38,7 +68,8 @@ return out || markupGenerator.createText("");
  * Output template code fragment.
  * @deprecated
  */
-export const DEFINE = `define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEPENDENCIES#*/, function(Executor, rk) {
+export const DEFINE = `
+define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEPENDENCIES#*/, function(/*#MODULE_PARAMS#*/) {
    function debug() {
       debugger;
    }
@@ -81,7 +112,8 @@ export const DEFINE = `define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEP
  * Output template code fragment.
  * @deprecated
  */
-export const FOR = `(function customForTemplate() {
+export const FOR = `
+(function customForTemplate() {
    var out = [];
    data.viewController = viewController || null;
    (function customForTemplateScope() {
@@ -104,7 +136,8 @@ export const FOR = `(function customForTemplate() {
  * Output template code fragment.
  * @deprecated
  */
-export const FOREACH = `(function forTemplate() {
+export const FOREACH = `
+(function forTemplate() {
    var iterator = undefined;
    for (var i = 0; i < thelpers.iterators.length && !iterator; i++) {
       if (thelpers.iterators[i].is( /*#SCOPE_ARRAY#*/ )) {
@@ -142,30 +175,20 @@ export const FOREACH = `(function forTemplate() {
  * Output template code fragment.
  * @deprecated
  */
-export const FUNCTION_TEMPLATE = `/*#DELETE IT START#*/
+export const FUNCTION_TEMPLATE = `
+/*#DELETE IT START#*/
 if (typeof context === "undefined") {
    var context = arguments[2];
 }
-if (typeof thelpers === "undefined") {
-   eval("var thelpers = null;");
-   thelpers = (function () {
-      return this || (0, eval)('this')
-   })().requirejs("UI/Executor").TClosure;
-}
+${INIT_T_HELPERS}
 if (sets && sets.isSetts) {
    var contextObj = sets.fullContext || {};
 }
 /*#DELETE IT END#*/
 
-var templateCount = 0;
 var currentPropertyName = "/*#PROPERTY_NAME#*/";
 data = thelpers.isolateScope(Object.create(this), data, currentPropertyName);
-var key = thelpers.validateNodeKey(attr && attr.key);
-var defCollection = {
-   id: [],
-   def: undefined
-};
-var viewController = thelpers.calcParent(this, typeof currentPropertyName === 'undefined' ? undefined : currentPropertyName, data);
+${INIT_KEY_AND_CONTROLLER}
 
 /*#TEMPLATE_BODY#*/
 `;
@@ -174,38 +197,27 @@ var viewController = thelpers.calcParent(this, typeof currentPropertyName === 'u
  * Output template code fragment.
  * @deprecated
  */
-export const HEAD = `/*#DELETE IT START#*/
+export const HEAD = `
+/*#DELETE IT START#*/
 function debug() {
    debugger;
 }
 var scopeForTemplate, attrsForTemplate;
 var thelpers = typeof tclosure === 'undefined' || !tclosure ? arguments[arguments.length - 1] : tclosure;
-if (typeof thelpers === "undefined" || !thelpers._isTClosure) {
-   eval("var thelpers = null;");
-   thelpers = (function () {
-      return this || (0, eval)('this')
-   })().requirejs("UI/Executor").TClosure;
-}
+${INIT_T_HELPERS}
 var depsLocal = typeof _deps === 'undefined' ? undefined : _deps;
-if (typeof includedTemplates === "undefined") {
-   eval("var includedTemplates = undefined;");
-   includedTemplates = (this && this.includedTemplates) ? this.includedTemplates : {};
-}
+${INIT_INCLUDED_TEMPLATES}
 /*#DELETE IT END#*/
-var templateCount = 0;
-var key = thelpers.validateNodeKey(attr && attr.key);
-var defCollection = {
-   id: [],
-   def: undefined
-};
-var viewController = thelpers.calcParent(this, typeof currentPropertyName === 'undefined' ? undefined : currentPropertyName, data);
+
+${INIT_KEY_AND_CONTROLLER}
 `;
 
 /**
  * Output template code fragment.
  * @deprecated
  */
-export const INCLUDED_TEMPLATE = `{
+export const INCLUDED_TEMPLATE = `
+{
    func: (function () {
       var scope = Object.create(data);
       scope.viewController = viewController || null;
@@ -233,7 +245,7 @@ export const INCLUDED_TEMPLATE_REACT = `
       var scope = Object.create(data);
       scope.viewController = viewController || null;
       var bindFn = function(props) {
-        return /*#TEMPLATE#*/.call(scope, props, attr, context, isVdom, sets, forceCompatible, generatorConfig);
+        return /*#TEMPLATE#*/;
       };
 
       /*#DELETE IT START#*/
@@ -251,7 +263,8 @@ export const INCLUDED_TEMPLATE_REACT = `
  * Output template code fragment.
  * @deprecated
  */
-export const OBJECT_TEMPLATE = `(new(function () {
+export const OBJECT_TEMPLATE = `
+(new(function () {
    var scope = Object.create(data);
    scope.viewController = viewController || null;
    var func = ( /*#TEMPLATE#*/ );
@@ -264,7 +277,8 @@ export const OBJECT_TEMPLATE = `(new(function () {
 /**
  * Узел контентной опции (tmpl)
  */
-export const OBJECT_TEMPLATE_REACT = `(new(function () {
+export const OBJECT_TEMPLATE_REACT = `
+(new(function () {
    var scope = Object.create(data);
    scope.viewController = viewController || null;
    var func = ( /*#TEMPLATE#*/ );
@@ -278,40 +292,24 @@ export const OBJECT_TEMPLATE_REACT = `(new(function () {
  * Output template code fragment.
  * @deprecated
  */
-export const PARTIAL_TEMPLATE = `(function f2(data, attr) {
-  var key = thelpers.validateNodeKey(attr && attr.key);
-  var defCollection = {
-    id: [],
-    def: undefined
-  };
-  /*#BODY#*/
-})
+export const PARTIAL_TEMPLATE_HEADER = INIT_KEY_AND_DEF_COLLECTION;
+
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
+export const PRIVATE_TEMPLATE = `
+${INIT_KEY_AND_CONTROLLER}
+/*#BODY#*/
 `;
 
 /**
  * Output template code fragment.
  * @deprecated
  */
-export const PRIVATE_TEMPLATE = `{
-  var key = thelpers.validateNodeKey(attr && attr.key);
-  var templateCount = 0;
-  var defCollection = {
-    id: [],
-    def: undefined
-  };
-  var viewController = thelpers.calcParent(this, typeof currentPropertyName === "undefined" ? undefined : currentPropertyName, data);
-  /*#BODY#*/
-}
-`;
-
-/**
- * Output template code fragment.
- * @deprecated
- */
-export const PRIVATE_TEMPLATE_HEADER = `(function () {
-  includedTemplates["/*#NAME#*/"] = (function (data, attr, context, isVdom) {
-    /*#BODY#*/
-  }.bind({
+export const PRIVATE_TEMPLATE_HEADER = `
+(function () {
+  includedTemplates["/*#NAME#*/"] = (/*#TEMPLATE_FUNCTION#*/.bind({
     includedTemplates: includedTemplates
   }));
 })(),
@@ -321,16 +319,12 @@ export const PRIVATE_TEMPLATE_HEADER = `(function () {
  * Output template code fragment.
  * @deprecated
  */
-export const STRING_TEMPLATE = `/*#DELETE IT START#*/
+export const STRING_TEMPLATE = `
+/*#DELETE IT START#*/
 if (typeof context === "undefined") {
    var context = arguments[2];
 }
-if (typeof thelpers === "undefined") {
-   eval("var thelpers = null;");
-   thelpers = (function () {
-      return this || (0, eval)('this')
-   })().requirejs("UI/Executor").TClosure;
-}
+${INIT_T_HELPERS}
 /*#DELETE IT END#*/
 
 var templateCount = 0;

@@ -1,8 +1,9 @@
 define('Compiler/modules/template', [
    'Compiler/utils/ErrorHandler',
    'Compiler/Config',
-   'Compiler/codegen/templates'
-], function templateLoader(ErrorHandlerLib, BuilderConfig, templates) {
+   'Compiler/codegen/templates',
+   'Compiler/codegen/feature/Function'
+], function templateLoader(ErrorHandlerLib, BuilderConfig, templates, codegenFeatureFunction) {
    'use strict';
 
    /**
@@ -44,7 +45,8 @@ define('Compiler/modules/template', [
                this.includedFn[name] = functionString;
                return '';
             }
-            result = templates.generatePrivateTemplateHeader(name, functionString);
+            var templateFunctionString = codegenFeatureFunction.createTemplateFunctionString(functionString);
+            result = templates.generatePrivateTemplateHeader(name, templateFunctionString);
             return result;
          }
          return templateReady;

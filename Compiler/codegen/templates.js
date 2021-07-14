@@ -1,7 +1,8 @@
 define('Compiler/codegen/templates', [
    'Compiler/codegen/jstpl',
-   'Compiler/Config'
-], function(jstpl, builderConfig) {
+   'Compiler/Config',
+   'Compiler/codegen/feature/Function'
+], function(jstpl, builderConfig, codegenFeatureFunction) {
    'use strict';
 
    /**
@@ -57,7 +58,7 @@ define('Compiler/codegen/templates', [
 
    var privateTemplate = preprocessRawTemplate(jstpl.PRIVATE_TEMPLATE);
    var privateTemplateHeader = preprocessRawTemplate(jstpl.PRIVATE_TEMPLATE_HEADER);
-   var partialTemplate = preprocessRawTemplate(jstpl.PARTIAL_TEMPLATE);
+   var partialTemplateHeader = preprocessRawTemplate(jstpl.PARTIAL_TEMPLATE_HEADER);
 
    /**
     * Очистить сгенерированный текст шаблона от deprecated-блоков.
@@ -94,9 +95,10 @@ define('Compiler/codegen/templates', [
     * @param dependencies Массив зависимостей.
     * @param reactiveProperties Массив имен реактивных свойств.
     * @param hasTranslations Флаг наличия в единице трансляции конструкции локализации.
+    * @param useReact Флаг react сборки.
     * @returns {string} Сгенерированный текст шаблона.
     */
-   function generateDefine(moduleName, moduleExtension, templateFunction, dependencies, reactiveProperties, hasTranslations) {
+   function generateDefine(moduleName, moduleExtension, templateFunction, dependencies, reactiveProperties, hasTranslations, useReact) {
       var index, functionName, functionBody;
       var includedTemplates = '';
       var localDependenciesList = '';
@@ -126,7 +128,9 @@ define('Compiler/codegen/templates', [
       if (templateFunction.includedFn) {
          for (functionName in templateFunction.includedFn) {
             if (templateFunction.includedFn.hasOwnProperty(functionName)) {
-               includedTemplates += 'function ' + functionName + '(data, attr, context, isVdom, sets, forceCompatible, generatorConfig)' + templateFunction.includedFn[functionName];
+               includedTemplates += codegenFeatureFunction.createTemplateFunctionString(
+                  templateFunction.includedFn[functionName], functionName
+               );
                localDependenciesList += 'depsLocal["' + functionName + '"] = ' + functionName + ';';
             }
          }
@@ -136,8 +140,15 @@ define('Compiler/codegen/templates', [
       var headDependencies = [
          'UI/Executor'
       ];
+
+      var moduleParams = ['Executor'];
       if (hasTranslations) {
          headDependencies.push('i18n!' + moduleName.split('/')[0]);
+         moduleParams.push('rk');
+      }
+      if (useReact) {
+         headDependencies.push('react');
+         moduleParams.push('React');
       }
       if (dependencies) {
          for (index = 0; index < dependencies.length; ++index) {
@@ -147,11 +158,13 @@ define('Compiler/codegen/templates', [
 
       var finalDependencies = headDependencies.concat(dependencies);
       var globalFileNameCode = 'var filename = "' + moduleName + '";';
+      var moduleParamsString = moduleParams.join(', ');
 
       return defineTemplate
          .replace(/\/\*#GLOBAL_FILE_NAME#\*\//g, generateReturnValueFunction(globalFileNameCode))
          .replace(/\/\*#TEMPLATE#\*\//g, generateReturnValueFunction(template))
          .replace(/\/\*#MODULE_EXTENSION#\*\//g, generateReturnValueFunction(moduleExtension))
+         .replace(/\/\*#MODULE_PARAMS#\*\//g, generateReturnValueFunction(moduleParamsString))
          .replace(/\/\*#PRIVATE_TEMPLATES#\*\//g, generateReturnValueFunction(privateTemplates))
          .replace(/\/\*#INCLUDED_TEMPLATES#\*\//g, generateReturnValueFunction(includedTemplates))
          .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, 'true')
@@ -161,7 +174,7 @@ define('Compiler/codegen/templates', [
          .replace(/\/\*#REACTIVE_PROPERTIES#\*\//g, generateReturnValueFunction(JSON.stringify(reactiveProperties)));
    }
 
-   function generateTmplDefine(moduleName, moduleExtension, templateFunction, dependencies, reactiveProperties, hasTranslations) {
+   function generateTmplDefine(moduleName, moduleExtension, templateFunction, dependencies, reactiveProperties, hasTranslations, useReact) {
       var index;
       var mainTemplateFunctionName = templateFunction.name;
       if (mainTemplateFunctionName === 'anonymous' || mainTemplateFunctionName === undefined) {
@@ -173,8 +186,15 @@ define('Compiler/codegen/templates', [
       var headDependencies = [
          'UI/Executor'
       ];
+
+      var moduleParams = ['Executor'];
       if (hasTranslations) {
          headDependencies.push('i18n!' + moduleName.split('/')[0]);
+         moduleParams.push('rk');
+      }
+      if (useReact) {
+         headDependencies.push('react');
+         moduleParams.push('React');
       }
       if (dependencies) {
          for (index = 0; index < dependencies.length; ++index) {
@@ -183,10 +203,12 @@ define('Compiler/codegen/templates', [
       }
 
       var finalDependencies = headDependencies.concat(dependencies);
+      var moduleParamsString = moduleParams.join(', ');
       return defineTemplate
          .replace(/\/\*#GLOBAL_FILE_NAME#\*\//g, EMPTY_STRING)
          .replace(/\/\*#TEMPLATE#\*\//g, generateReturnValueFunction(template))
          .replace(/\/\*#MODULE_EXTENSION#\*\//g, generateReturnValueFunction(moduleExtension))
+         .replace(/\/\*#MODULE_PARAMS#\*\//g, generateReturnValueFunction(moduleParamsString))
          .replace(/\/\*#PRIVATE_TEMPLATES#\*\//g, EMPTY_STRING)
          .replace(/\/\*#INCLUDED_TEMPLATES#\*\//g, EMPTY_STRING)
          .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, 'false')
@@ -346,17 +368,15 @@ define('Compiler/codegen/templates', [
    function generatePrivateTemplateHeader(name, body) {
       return privateTemplateHeader
          .replace('/*#NAME#*/', generateReturnValueFunction(name))
-         .replace('/*#BODY#*/', generateReturnValueFunction(body));
+         .replace('/*#TEMPLATE_FUNCTION#*/', generateReturnValueFunction(body));
    }
 
    /**
     * Сгенерировать partial шаблон
-    * @param body {string} Тело шаблона.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generatePartialTemplate(body) {
-      return partialTemplate
-         .replace('/*#BODY#*/', generateReturnValueFunction(body));
+   function generatePartialTemplate() {
+      return partialTemplateHeader;
    }
 
    return {

@@ -8,10 +8,11 @@ define('Compiler/modules/partial', [
    'Compiler/codegen/templates',
    'Compiler/codegen/TClosure',
    'Compiler/codegen/feature/Partial',
-   'Compiler/codegen/Internal'
+   'Compiler/codegen/Internal',
+   'Compiler/codegen/feature/Function'
 ], function partialLoader(
    injectedDataForce, names, Process, parse, FSC,
-   Generator, templates, TClosure, FeaturePartial, Internal
+   Generator, templates, TClosure, FeaturePartial, Internal, codegenFeatureFunction
 ) {
    'use strict';
 
@@ -264,7 +265,9 @@ define('Compiler/modules/partial', [
 
       // TMPL compiler
       var inlineTemplateBody = this.getString(tag.children, {}, this.handlers, {}, true);
-      var inlineTemplateFunction = templates.generatePartialTemplate(inlineTemplateBody);
+      var inlineTemplateFunction = '(' + codegenFeatureFunction.createTemplateFunctionString(
+         templates.generatePartialTemplate() + inlineTemplateBody, 'f2'
+      ) + ')';
       return Generator.genCreateControlNew(
          'inline',
          templateValue,
@@ -300,12 +303,12 @@ define('Compiler/modules/partial', [
             var decorInternal = (tag.internal && Object.keys(tag.internal).length > 0)
                ? FSC.getStr(tag.internal)
                : null;
-            
+
             if (Internal.canUseNewInternalFunctions() && this.internalFunctions) {
                // TODO: Test and remove code above
                decorInternal = Internal.generate(tag.__$ws_internalTree, this.internalFunctions);
             }
-            
+
             var createTmplCfg = FeaturePartial.createTemplateConfig(!decorInternal ? '{}' : decorInternal, tag.isRootTag);
 
             if (tagIsDynamicPartial) {
@@ -373,14 +376,20 @@ define('Compiler/modules/partial', [
                tpl = tag.attribs._wstemplatename.data.value;
             } else {
                var body = this.getString(tag.children, {}, this.handlers, {}, true);
-               tpl = templates.generatePartialTemplate(body);
+               tpl = '(' + codegenFeatureFunction.createTemplateFunctionString(
+                  templates.generatePartialTemplate() + body, 'f2'
+               ) + ')';
             }
 
-            return '(function(){' +
+            var beforeFunctionCall = '(function(){' +
                'attrsForTemplate = ' + createAttribs + '; scopeForTemplate = ' + callDataArg + ';' +
-               '}).apply(this),' + tpl +
-               '.call(this, scopeForTemplate, attrsForTemplate, context, isVdom),' +
-               '(function(){attrsForTemplate = null;scopeForTemplate = null;}).apply(),';
+               '}).apply(this),';
+            var functionCall = codegenFeatureFunction.generateTemplateFunctionCall(tpl, [
+               'this', 'scopeForTemplate', 'attrsForTemplate', 'context', 'isVdom'
+            ]) + ',';
+            var afterFunctionCall = '(function(){attrsForTemplate = null;scopeForTemplate = null;}).apply(),';
+
+            return beforeFunctionCall + functionCall + afterFunctionCall;
          }
          return resolveStatement;
       }
