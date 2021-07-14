@@ -13,4 +13,18 @@
 
 export { Control, IControlChildren, WasabyPortal } from 'UICore/Base';
 export { IControlOptions, TemplateFunction } from 'UICommon/Base';
-export * from './_base/CommonLib';
+
+export { default as BootstrapStart } from 'UI/_base/BootstrapStart';
+export { HeadData, headDataStore } from 'UICommon/Deps';
+export { getGeneratorConfig } from 'UICore/Base';
+
+export { default as Creator, async as AsyncCreator } from 'UI/_base/Creator';
+export { startApplication } from 'UICore/Base';
+export { default as TagMarkup } from 'UI/_base/_meta/TagMarkup';
+export { fromJML } from 'UI/_base/_meta/JsonML';
+
+//#region meta data
+import * as meta from 'UI/_base/meta';
+export { meta };
+export { getMetaStack } from 'UI/_base/meta';
+//#endregion
