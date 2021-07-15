@@ -9,7 +9,7 @@ import { ModulePath } from './ModulePath';
 /**
  * Разрешает использование флага useReact, принимаемый в качестве опций компилятора.
  */
-const ALLOW_USE_REACT_FLAG = false;
+const ALLOW_USE_REACT_FLAG = true;
 
 /**
  * Represents interface for traverse config.
