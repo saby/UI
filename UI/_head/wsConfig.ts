@@ -5,7 +5,7 @@ import { getConfig } from 'Application/Env';
 import { constants } from 'Env/Env';
 import { AppData } from 'UI/State';
 import * as AppEnv from 'Application/Env';
-import { IHeadOptions } from 'UI/_head/defaultTags';
+import { IHeadOptions } from 'UI/_head/Interface';
 
 /**
  * Подготовка когфига, который прилетит с сервака на клиент
