@@ -242,13 +242,13 @@ class WasabyWhitespaceVisitor implements INodeVisitor {
       if (this.needPreprocess) {
          if (context.prev || context.parent) {
             data = data
-               .replace(/^[\s]*[\n\r][\s]*/ig, EMPTY_STRING)
-               .replace(/^[\n\r]/ig, EMPTY_STRING);
+               .replace(/^[\s]*[\n\r][\s]*/ig, SPACE)
+               .replace(/^[\n\r]/ig, SPACE);
          }
          if (context.next || context.parent) {
             data = data
-               .replace(/[\s]*[\n\r][\s]*$/ig, EMPTY_STRING)
-               .replace(/[\n\r]$/ig, EMPTY_STRING);
+               .replace(/[\s]*[\n\r][\s]*$/ig, SPACE)
+               .replace(/[\n\r]$/ig, SPACE);
          }
       }
       data = data.replace(/\s+/g, SPACE);
