@@ -77,7 +77,6 @@ export interface IHeadOptions extends IRootTemplateOptions {
     theme?: string;
     noscript?: string;
     preInitScript?: string;
-    reactApp?: boolean;
     meta?: Object[];
     links?: Object[];
     scripts?: Object[];
