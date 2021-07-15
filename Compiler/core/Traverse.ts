@@ -1503,9 +1503,16 @@ class Traverse implements ITraverse {
             )
          );
 
+         const needToTrimText = context.state === TraverseState.BOOLEAN_DATA_TYPE ||
+            context.state === TraverseState.FUNCTION_DATA_TYPE ||
+            context.state === TraverseState.NUMBER_DATA_TYPE ||
+            context.state === TraverseState.STRING_DATA_TYPE ||
+            context.state === TraverseState.VALUE_DATA_TYPE;
+         const textContent = needToTrimText ? node.data.trim() : node.data;
+
          // Process text node content.
          // If text is invalid then an error will be thrown.
-         const content = this.textProcessor.process(node.data, {
+         const content = this.textProcessor.process(textContent, {
             fileName: context.fileName,
             allowedContent: context.textContent || TextContentFlags.FULL_TEXT,
             translationsRegistrar: context.scope,
