@@ -1,3 +1,0 @@
-<div>
-   {{ __setHTMLUnsafe( jslinksData ) }}
-</div>

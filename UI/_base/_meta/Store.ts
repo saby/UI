@@ -1,9 +1,9 @@
-/// <amd-module name="UI/_base/HTML/_meta/Store" />
+/// <amd-module name="UI/_base/_meta/Store" />
 
 import { getStore, setStore } from 'Application/Env';
 import { isInit } from 'Application/Initializer';
 import { IStore } from 'Application/Interface';
-import { IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
+import { IMetaStateInternal } from 'UI/_base/_meta/interface';
 
 export type IStates = Record<string, IMetaStateInternal>;
 type KeyIState = keyof IStates & string;
@@ -29,7 +29,7 @@ class StateStore implements IStore<IStates> {
       return this.data;
    }
 
-   static label: string = 'UI/_base/HTML/_meta/Stack#MetaStore';
+   static label: string = 'UI/_base/_meta/Stack#MetaStore';
 }
 
 export function createStatesStore(states?: IStates): () => IStore<IStates> {

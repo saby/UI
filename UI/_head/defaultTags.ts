@@ -2,24 +2,10 @@
 
 import { Head as AppHead, JSLinks } from 'Application/Page';
 import type { JML } from 'Application/Page';
-import { getResourceUrl } from "UI/Utils";
+import { getResourceUrl } from 'UI/Utils';
 import escapeHtml = require('Core/helpers/String/escapeHtml');
+import { IHeadOptions } from 'UI/_head/Interface';
 
-import { IHTMLOptions } from '../_base/interface/IHTML';
-import { IRootTemplateOptions } from '../_base/interface/IRootTemplate';
-
-export interface IHeadOptions extends IHTMLOptions, IRootTemplateOptions {
-   defaultTheme?: string;
-   theme?: string;
-   noscript?: string;
-   preInitScript?: string;
-   reactApp?: boolean;
-   pageName?: string;
-   RUMEnabled?: boolean;
-   meta?: Object[];
-   links?: Object[];
-   scripts?: Object[];
-}
 
 export function createTitle(title: string): void {
    AppHead.getInstance().createTag('title', {}, title);
@@ -31,11 +17,9 @@ export function createViewPort(): void {
 export function createDefaultTags(cfg: IHeadOptions): void {
    const API = AppHead.getInstance();
 
-   if (!cfg.compat) {
-      API.createTag('script', {type: 'text/javascript'},
-         `window.themeName = '${cfg.theme || cfg.defaultTheme || ''}';`
-      );
-   }
+   API.createTag('script', {type: 'text/javascript'},
+      `window.themeName = '${cfg.theme || cfg.defaultTheme || ''}';`
+   );
 
    if(cfg.noscript){
       API.createNoScript(cfg.noscript);

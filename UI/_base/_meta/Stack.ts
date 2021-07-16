@@ -1,20 +1,20 @@
-/// <amd-module name="UI/_base/HTML/_meta/Stack" />
+/// <amd-module name="UI/_base/_meta/Stack" />
 
 import {
    IMeta, IMetaState, IMetaStackInternal,
    ISerializedMetaStack, ISerializedMetaState, IMetaStateInternal
-} from 'UI/_base/HTML/_meta/interface';
-import { mountState, unmountState } from 'UI/_base/HTML/_meta/DOMmanipulator';
-import State from 'UI/_base/HTML/_meta/State';
-import { createStatesStore, IStates } from 'UI/_base/HTML/_meta/Store';
+} from 'UI/_base/_meta/interface';
+import { mountState, unmountState } from 'UI/_base/_meta/DOMmanipulator';
+import State from 'UI/_base/_meta/State';
+import { createStatesStore, IStates } from 'UI/_base/_meta/Store';
 import { IStore } from 'Application/Interface';
 
 /**
  * Хранилище meta-данных страницы
- * @class UI/_base/HTML/_meta/Stack
+ * @class UI/_base/_meta/Stack
  * @public
  * @author Ибрагимов А.А.
- * @implements {UI/_base/HTML/_meta/IMetaStack}
+ * @implements {UI/_base/_meta/IMetaStack}
  */
 export default class Stack implements IMetaStackInternal {
    private _lastState: IMetaStateInternal;

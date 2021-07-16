@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { generateTagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
+import { generateTagMarkup } from 'UI/_base/_meta/TagMarkup';
 
 const attrs = { attr1: 'val1', attr2: 'val2' };
 

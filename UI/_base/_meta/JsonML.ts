@@ -1,5 +1,5 @@
-/// <amd-module name="UI/_base/HTML/_meta/JsonML" />
-import { ITagDescription, JML, FullJML } from 'UI/_base/HTML/_meta/interface';
+/// <amd-module name="UI/_base/_meta/JsonML" />
+import { ITagDescription, JML, FullJML } from 'UI/_base/_meta/interface';
 /**
  * Конвертация из JsonML в ITagDescription
  * https://wi.sbis.ru/doc/platform/developmentapl/service-development/service-contract/logic/json-markup-language/
