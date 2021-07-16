@@ -651,6 +651,11 @@ export default class Control<TOptions extends IControlOptions = {},
         );
     }
 
+    destroy() {
+        // нужен для правильной работы совместимости.
+        // если не будет метода, при makeInstanceCompatible будет подставлен destroy из UI/Base:Control
+    }
+
     /**
      * Контекст с опциями readOnly и theme
      */
@@ -863,6 +868,7 @@ export default class Control<TOptions extends IControlOptions = {},
 
         if (result instanceof Control) {
             const compatible = Control.configureCompatibility(domElement, cfg, ctor);
+            cfg._$createdFromCode = true;
             if (compatible) {
                 Control.mixCompatible(result, cfg);
             }
@@ -876,7 +882,7 @@ export default class Control<TOptions extends IControlOptions = {},
         }
 
         // вычисляем родителя физически - ближайший к элементу родительский контрол
-        const parent = goUpByControlTree(domElement)[0];
+        const parent = cfg.parent || goUpByControlTree(domElement)[0];
 
         if (needToBeCompatible(ctor, parent)) {
             cfg.element = domElement;
@@ -917,6 +923,8 @@ FIXME: если я правильно понимаю, это сделано дл
 Object.assign(Control.prototype, {
     _template: template
 });
+// нужно для совместимости, чтобы перебить _notify совместимым, который будет учитывать EventBus
+((Control.prototype as any)._notify as any)._isVdomNotify = true;
 
 function logError(e: Error): void {
     Logger.error(e.message);

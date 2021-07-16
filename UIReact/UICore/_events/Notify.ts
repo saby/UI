@@ -16,7 +16,7 @@ function getControlNode(inst: Control) {
         return false;
     }
     const controlNodes = inst._container.controlNodes;
-    const controlNodeForInst = controlNodes.filter((node) =>  node.control === inst);
+    const controlNodeForInst = controlNodes && controlNodes.filter((node) =>  node.control === inst);
     if (Array.isArray(controlNodeForInst)) {
         return controlNodeForInst[0];
     }
