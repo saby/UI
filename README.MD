@@ -1,13 +1,11 @@
-#UI
-Saby/UI includes modules:
- * UI
- * Markup
- * TextMarkup
- * VirtualTreeMarkup
- * WmlBuilder
- * Compiler
- * UITest
- * UIDemo
+# UI
+Библиотека построения UI. Часть фреймворка wasaby.
+
+## Ответственный
++ Санников Кирилл
+
+## Документация
+ + API: https://wasaby.dev/docs/js/UI?v=21.4100
 
 ## Running the Tests
 
