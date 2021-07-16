@@ -12,6 +12,7 @@ import {
     IGeneratorNameObject, ITplFunction
 } from 'UICommon/Executor';
 import { IWasabyEvent } from 'UICommon/Events';
+import { resolveControlName } from './Utils';
 
 import { TemplateFunction, IControlOptions } from 'UICommon/Base';
 import type { TIState } from 'UICommon/interfaces';
@@ -284,18 +285,6 @@ export function resolveTemplateFunction(parent: Control<IControlOptions>,
         return null;
     }
     return template.call(parent, resolvedScope, decorAttribs, undefined, true, undefined, undefined) as TemplateResult;
-}
-export function resolveControlName(controlData: IControlOptions, attributes: Attr.IAttributes):
-    Attr.IAttributes {
-    const attr = attributes || {};
-    if (controlData && typeof controlData.name === 'string') {
-        attr.name = controlData.name;
-    } else {
-        if (attributes && typeof attributes.name === 'string') {
-            controlData.name = attributes.name;
-        }
-    }
-    return attr;
 }
 
 /**

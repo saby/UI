@@ -2,7 +2,7 @@ import {
     Attr,
     VoidTags as voidElements,
     TAttributes,
-    IAttributes
+    IAttributes, INodeAttribute
 } from 'UICommon/Executor';
 import {CreateChildrenRef} from './Vdom/Refs/CreateChildrenRef';
 import {CreateEventRef} from './Vdom/Refs/CreateEventRef';
@@ -15,6 +15,10 @@ import { Control } from 'UICore/Base';
 import { ChainOfRef, CreateOriginRef } from 'UICore/Ref';
 
 import * as React from "react";
+
+interface IControlData {
+    name?: unknown;
+}
 
 /**
  * @author Тэн В.А.
@@ -142,6 +146,19 @@ export function joinElementsDefault(elements: string[]): string {
     }
 }
 
+export function resolveControlName<TOptions extends IControlData>(controlData: TOptions,
+    attributes: TAttributes | INodeAttribute): TAttributes | INodeAttribute {
+    const attr = attributes || {};
+    if (controlData && controlData.name) {
+        attr.name = controlData.name;
+    } else {
+        if (attributes && attributes.name) {
+            controlData.name = attributes.name;
+        }
+    }
+    return attr;
+}
+
 function decorateAttrs(attr1: TAttributes, attr2: TAttributes): string {
     function wrapUndef(value: string): string {
         if (value === undefined || value === null) {
@@ -162,3 +179,5 @@ function decorateAttrs(attr1: TAttributes, attr2: TAttributes): string {
     };
     return attrToStr(Attr.joinAttrs(attr1, attr2));
 }
+
+
