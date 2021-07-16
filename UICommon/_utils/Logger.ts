@@ -2,6 +2,7 @@
 
 // @ts-ignore
 import { IoC } from 'Env/Env';
+import {getClosestControl} from 'UI/NodeCollector';
 // tslint:disable: no-any
 
 /**
@@ -103,6 +104,7 @@ const prepareStack = (stackNode: {[key: string]: any}): string => {
    const LIMIT_LEVEL_STACK = 20;
    let data = stackNode;
 
+   // todo когда будем переписывать логгер по реакт, нужно избавиться от controlNodes
    // если передали DOM - конвертируем в контрол
    if ('controlNodes' in data) {
       const nodes = data.controlNodes;
