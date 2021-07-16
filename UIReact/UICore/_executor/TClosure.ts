@@ -1,10 +1,31 @@
-import { getIfNeedGeneratorCompatible } from 'UICommon/Executor';
 import { Text, Vdom } from './Markup';
 import { Logger } from 'UICommon/Utils';
 import { Fragment, createElement } from 'react';
 
+import { CommonUtils as Common } from 'UICommon/Executor';
+import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
+
+let generatorCompatible;
+function getIfNeedGeneratorCompatible(forceCompatible: boolean, config) {
+   if (Common.disableCompat() || (!Common.isCompat() && !forceCompatible)) {
+      return false;
+   }
+   if (generatorCompatible && generatorCompatible.generatorConfig === config) {
+      return generatorCompatible;
+   }
+   if (ModulesLoader.isLoaded('View/ExecutorCompatible')) {
+      // eslint-disable-next-line
+      generatorCompatible = ModulesLoader.loadSync('View/ExecutorCompatible').CompatibleReact(config);
+      return generatorCompatible;
+   } else {
+      // FIXME: сейчас на СП всегда стоит флаг совместимости
+      // Logger.warn('View/ExecutorCompatible не загружен. Проверьте загрузку слоя совместимости.');
+      return false;
+   }
+}
+
 export function createGenerator(isVdom, forceCompatible = false, config) {
-   if (isVdom) {
+   if (isVdom !== false) {
       return Vdom(config);
    }
 

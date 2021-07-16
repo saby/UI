@@ -12,6 +12,7 @@ import {
     IGeneratorNameObject, ITplFunction
 } from 'UICommon/Executor';
 import { IWasabyEvent } from 'UICommon/Events';
+import { resolveControlName } from './Utils';
 
 import { TemplateFunction, IControlOptions } from 'UICommon/Base';
 import type { TIState } from 'UICommon/interfaces';
@@ -212,7 +213,7 @@ function getLibraryTpl(tpl: IGeneratorNameObject,
     }
     return controlClass;
 }
-function resolveTpl(tpl: TemplateOrigin,
+export function resolveTpl(tpl: TemplateOrigin,
                     includedTemplates: Common.IncludedTemplates,
                     deps: Common.Deps<typeof Control>
 ): Common.IDefaultExport<typeof Control> | typeof Control | TemplateFunction | Common.IDefaultExport<typeof Control> |
@@ -233,7 +234,7 @@ function resolveTpl(tpl: TemplateOrigin,
     return tpl;
 }
 
-function resolveTemplateArray(
+export function resolveTemplateArray(
     parent: Control<IControlOptions>,
     templateArray: Common.ITemplateArray<TemplateFunction | ITplFunction<TemplateFunction>>,
     resolvedScope: IControlOptions,
@@ -275,7 +276,7 @@ function resolveTemplate(template: TemplateFunction | ITplFunction<TemplateFunct
     return resolvedTemplate;
 }
 
-function resolveTemplateFunction(parent: Control<IControlOptions>,
+export function resolveTemplateFunction(parent: Control<IControlOptions>,
                                  template: TemplateFunction | Function,
                                  resolvedScope: IControlOptions,
                                  decorAttribs: IGeneratorAttrs): TemplateResult {
@@ -284,18 +285,6 @@ function resolveTemplateFunction(parent: Control<IControlOptions>,
         return null;
     }
     return template.call(parent, resolvedScope, decorAttribs, undefined, true, undefined, undefined) as TemplateResult;
-}
-function resolveControlName(controlData: IControlOptions, attributes: Attr.IAttributes):
-    Attr.IAttributes {
-    const attr = attributes || {};
-    if (controlData && typeof controlData.name === 'string') {
-        attr.name = controlData.name;
-    } else {
-        if (attributes && typeof attributes.name === 'string') {
-            controlData.name = attributes.name;
-        }
-    }
-    return attr;
 }
 
 /**
@@ -364,7 +353,7 @@ function createTemplate(
     // );
 }
 
-function logResolverError(tpl: TemplateOrigin, parent: Control<IControlOptions>): void {
+export function logResolverError(tpl: TemplateOrigin, parent: Control<IControlOptions>): void {
     if (typeof tpl !== 'string') {
         let errorText = 'Ошибка в шаблоне! ';
         if (Common.isLibraryModule(tpl)) {
