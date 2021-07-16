@@ -49,8 +49,6 @@ export function createWsConfig(cfg: IHeadOptions): void {
          `cfg.staticDomains = ${staticDomains};`,
          'cfg.compatible = false;',
          `cfg.product = '${product}';`,
-         `cfg.reactApp = ${cfg.reactApp || false};`,
-         `cfg.bootstrapWrapperMode = ${getConfig('bootstrapWrapperMode') as boolean || false};`,
          buildnumber ? `window.buildnumber = '${buildnumber}';` : '',
          `window['X-UNIQ-ID'] = '${getConfig('X-UNIQ-ID') || ''}';`,
          `window['X-REQUESTUUID'] = '${getConfig('X-REQUESTUUID') || ''}';`,
