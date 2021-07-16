@@ -9,11 +9,11 @@ import {
    TAttributes,
    IGenerator
 } from 'UICommon/Executor';
-import { Attr } from 'UICommon/Executor';
 import { IWasabyEvent } from 'UICommon/_events/IEvents';
 import { Generator } from '../Generator';
 import React from "react";
 import {TemplateOrigin} from '../interfaces';
+import { createTagDefaultText, joinElementsDefault } from '../Utils';
 
 /**
  * @author Тэн В.А.
@@ -57,51 +57,11 @@ export class GeneratorText extends Generator implements IGenerator {
    }
 
    joinElements(elements: string[]): string {
-      if (Array.isArray(elements)) {
-         let res = '';
-         const self = this;
-         elements.forEach(function joinOneElement(element) {
-            if (Array.isArray(element)) {
-               element = self.joinElements(element);
-            }
-            res += (element || '');
-         });
-
-         return res;
-      } else {
-         throw new Error('joinElements: elements is not array');
-      }
+      return joinElementsDefault(elements);
    }
 
    createTag(tag, attrs, children, attrToDecorate?, defCollection?): string {
-      if (!attrToDecorate) {
-         attrToDecorate = {};
-      }
-      if (!attrs) {
-         attrs = {attributes: {}};
-      }
-
-      let mergedAttrs = Attr.processMergeAttributes(
-          attrToDecorate.attributes as IAttributes,
-          attrs.attributes as IAttributes
-      );
-
-      Object.keys(mergedAttrs).forEach((attrName) => {
-         if (attrName.indexOf('top:') === 0) {
-            const newAttrName = attrName.replace('top:', '');
-            mergedAttrs[newAttrName] = mergedAttrs[newAttrName] || mergedAttrs[attrName];
-            delete mergedAttrs[attrName];
-         }
-      });
-
-      const mergedAttrsStr = mergedAttrs
-          ? decorateAttrs(mergedAttrs, {})
-          : '';
-      // tslint:disable-next-line:no-bitwise
-      if (~voidElements.indexOf(tag)) {
-         return '<' + tag + mergedAttrsStr + ' />';
-      }
-      return '<' + tag + mergedAttrsStr + '>' + this.joinElements(children) + '</' + tag + '>';
+     return createTagDefaultText(tag, attrs, children, attrToDecorate, defCollection);
    }
 
    createDirective(text: string): string {
@@ -113,23 +73,4 @@ export class GeneratorText extends Generator implements IGenerator {
    }
 }
 
-function decorateAttrs(attr1: TAttributes, attr2: TAttributes): string {
-   function wrapUndef(value: string): string {
-      if (value === undefined || value === null) {
-         return '';
-      } else {
-         return value;
-      }
-   }
 
-   const attrToStr = (attrs: Array<string>): string => {
-      let str = '';
-      for (const attr in attrs) {
-         if (attrs.hasOwnProperty(attr)) {
-            str += (wrapUndef(attrs[attr]) !== '' ? ' ' + (attr + '="' + attrs[attr] + '"') : '');
-         }
-      }
-      return str;
-   };
-   return attrToStr(Attr.joinAttrs(attr1, attr2));
-}
