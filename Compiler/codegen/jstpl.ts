@@ -3,6 +3,8 @@
  * @author Крылов М.А.
  */
 
+import { genCreateForwardRef } from './TClosure';
+
 const INIT_T_HELPERS = `
 if (typeof thelpers === "undefined" || !thelpers._isTClosure) {
    eval("var thelpers = null;");
@@ -103,8 +105,12 @@ define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEPENDENCIES#*/, function(
       };
    };
    /*#DELETE IT END#*/
-
-   return templateFunction;
+   
+   var forwardRef = ${genCreateForwardRef("templateFunction")};
+   forwardRef.stable = templateFunction.stable;
+   forwardRef.reactiveProps = templateFunction.reactiveProps;
+   forwardRef.isWasabyTemplate = templateFunction.isWasabyTemplate;
+   return forwardRef;
 });
 `;
 
@@ -230,7 +236,9 @@ export const INCLUDED_TEMPLATE = `
       /*#DELETE IT END#*/
       bindFn.isWasabyTemplate = /*#IS_WASABY_TEMPLATE#*/;
 
-      return bindFn;
+      var forwardRef = ${genCreateForwardRef("bindFn")};
+      forwardRef.isWasabyTemplate = bindFn.isWasabyTemplate;
+      return forwardRef;
    })(),
    internal: /*#INTERNAL#*/,
    isWasabyTemplate: /*#IS_WASABY_TEMPLATE#*/
@@ -255,7 +263,9 @@ export const INCLUDED_TEMPLATE_REACT = `
       /*#DELETE IT END#*/
       bindFn.isWasabyTemplate = /*#IS_WASABY_TEMPLATE#*/;
 
-      return bindFn;
+      var forwardRef = ${genCreateForwardRef("bindFn")};
+      forwardRef.isWasabyTemplate = bindFn.isWasabyTemplate;
+      return forwardRef;
    })()
 `;
 
@@ -271,7 +281,10 @@ export const OBJECT_TEMPLATE = `
    this.func = thelpers.makeFunctionSerializable(func, scope);
    /*#INTERNAL#*/;
    this.func.isWasabyTemplate = /*#IS_WASABY_TEMPLATE#*/;
-})).func
+
+   this.forwardRef = ${genCreateForwardRef("this.func")};
+   this.forwardRef.isWasabyTemplate = this.func.isWasabyTemplate;
+})).forwardRef
 `;
 
 /**
@@ -285,7 +298,10 @@ export const OBJECT_TEMPLATE_REACT = `
    this.func = thelpers.makeFunctionSerializable(func, scope);
    /*#INTERNAL#*/;
    this.func.isWasabyTemplate = /*#IS_WASABY_TEMPLATE#*/;
-})).func
+
+   this.forwardRef = ${genCreateForwardRef("this.func")};
+   this.forwardRef.isWasabyTemplate = this.func.isWasabyTemplate;
+})).forwardRef
 `;
 
 /**
@@ -309,9 +325,7 @@ ${INIT_KEY_AND_CONTROLLER}
  */
 export const PRIVATE_TEMPLATE_HEADER = `
 (function () {
-  includedTemplates["/*#NAME#*/"] = (/*#TEMPLATE_FUNCTION#*/.bind({
-    includedTemplates: includedTemplates
-  }));
+  includedTemplates["/*#NAME#*/"] = ${genCreateForwardRef("(/*#TEMPLATE_FUNCTION#*/.bind({includedTemplates: includedTemplates}))")}
 })(),
 `;
 

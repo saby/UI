@@ -145,3 +145,11 @@ export function genPlainMergeContext(inner: string, outer: string): string {
 export function genPlainMerge(inner: string, outer: string, cloneFirst?: string): string {
    return `${VAR_MODULE_NAME}.plainMerge(${inner}, ${outer}, ${cloneFirst})`;
 }
+
+/**
+ * Generate create forward ref for template functions.
+ * @param callback {string} String representation of callback template function.
+ */
+export function genCreateForwardRef(callback: string): string {
+   return `${VAR_MODULE_NAME}.createForwardRef(${callback})`;
+}

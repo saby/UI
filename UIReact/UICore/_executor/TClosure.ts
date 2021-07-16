@@ -53,6 +53,11 @@ export function createDataArrayReact(array, templateName, isWasabyTemplate) {
    return result;
 }
 
+export function createForwardRef(callback: Function): any {
+   // TODO: forwardRef для react
+   return callback;
+}
+
 export {
    isolateScope,
    createScope,
