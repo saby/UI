@@ -102,16 +102,25 @@ const prepareStack = (stackNode: {[key: string]: any}): string => {
    const ARROW_NEXT = '\u21B1';
    const ARROW = '\u2192';
    const LIMIT_LEVEL_STACK = 20;
+   let data = stackNode;
 
-   let data;
+   // todo когда будем переписывать логгер по реакт, нужно избавиться от controlNodes
    // если передали DOM - конвертируем в контрол
-   if (stackNode instanceof HTMLElement) {
-      data = getClosestControl(stackNode);
+   if ('controlNodes' in data) {
+      const nodes = data.controlNodes;
+
+      // controls на переданной ноде может не быть
+      if (nodes && nodes.length > 0) {
+         data = nodes[nodes.length - 1]; // последний контрол, есть основной
+      }
+      if (!!data) {
+         data = stackNode;
+      }
    }
 
    // если передали WCN - конвертируем в контрол
-   if ('control' in stackNode) {
-      data = stackNode.control;
+   if ('control' in data) {
+      data = data.control;
    }
 
    // список модулей, которые не попадут в стек
